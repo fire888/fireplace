@@ -1,61 +1,146 @@
 
 let mySVG
-  , elements
-  , front
-  , front1 
-  , windowCenterX = window.innerWidth/2
+  , wrapperSvg
+  , fpl = {
+        front:  null
+      , frontScale: null
+      , frontM: null
+      , leg:    null
+      , legM:   null    
+    }
+  , axisX = 1000
+  , floor = 1200
+  , axis = null    
+  , ui = {
+      inpFrontWidth: null
+    }
 
 
 SVG.on(document, 'DOMContentLoaded', function() {
-  init()
+  loadModel() 
+  resizeModel()
+  drawShtamp()    
   drawFpl()
+  addSelectors()
 })
 
 
-
-const init = () => {
+const loadModel = () => {
+  document.body.style.margin = 0
+  document.body.style.padding = 0
+  document.body.style.overflow = 'hidden' 
+  document.body.style.backgroundColor = '#eeeeff'
+  wrapperSvg = document.getElementById( 'wrapperFireplaceModel' )
   mySVG = SVG( 'model' )
-    .attr({id:"mySVG"});
-  let myCircle =  mySVG.circle(100)
-    .attr({cx:200,cy:100,fill: 'green' });
+  mySVG.attr({ 
+      id: "mySVG"
+    , width: window.innerWidth
+    , height: window.innerHeight
+    , 'vector-effect' : 'non-scaling-stroke'
+  }) 
+  mySVG.viewbox(0, 0, 2970, 2100)
 }
 
-const drawRect = () => {
-  let rect = draw.rect( window.innerWidth, window.innerHeight ).attr({ fill: '#f06' })
+
+const resizeModel = () => { 
+  mySVG.attr({ 
+      width: window.innerWidth
+    , height: window.innerHeight
+  })
 }
+
+
+const drawShtamp = () => { 
+  let polyline = mySVG.polygon( '200,50    2920,50   2920,2050   200,2050')
+   .attr({ 
+      fill: 'none'
+    , stroke: '#000'
+    , 'stroke-width': 1
+    , 'vector-effect': 'non-scaling-stroke'
+  })
+  axis = mySVG.line( axisX, floor-15, axisX, floor+15 ).stroke({ width: 1 })
+}
+
 
 const drawFpl = () => {
-  let legDef = SVG.select('#leg')
-  let leg = mySVG.use( legDef.members[ 0 ] ).move( 200, 0 ) 
-  //leg.transform( { scaleX: 15, scaleY: 0.8 } )
-  leg.size( 800, 800)
-  leg.attr( { stroke: '#00f' } )
-  leg.x( 500 )
+  let legDef = SVG.select( '#leg' )
+  let leg = mySVG.use( legDef.members[ 0 ] ) 
+  leg.size( 1000, 1000 )
+  let legM = mySVG.use( legDef.members[ 0 ] ) 
+  legM.size( 1000, 1000 )
+  legM.flip( 'x' )      
 
-  /*let elemsLeg = leg.select( 'fil0' )
-  elemsLeg.attr({
-    fill: 'none'
-  , stroke: '#000'
-  , 'stroke-width': 15
-  })*/
+  let frontDef = SVG.select( '#front' )
+  let front = mySVG.use( frontDef.members[ 0 ] ) 
+  front.size( 1000, 1000 )
+  let frontM = mySVG.use( frontDef.members[ 0 ] ) 
+  frontM.size( 1000, 1000 )
+  frontM.flip( 'x' )   
 
+  let frontOffsetX = front.bbox().x
+  let frontWidth = front.bbox().w
+  let height = front.bbox().h 
+
+  front.x( -frontOffsetX + axisX  ) 
+  front.y( floor - height  )  
+  frontM.x( -axisX + frontOffsetX + frontWidth )
+  frontM.y( floor - height  )
+
+  let legOffsetX = leg.bbox().x
+  let legWidth = leg.bbox().w
+
+  leg.x( - legOffsetX + frontWidth + axisX )
+  leg.y( floor - height  )
+  legM.x( -axisX+ legOffsetX + legWidth + frontWidth )
+  legM.y( floor - height  )
   
-
-  //instFront.width(800 )
-  //instFront.width( 200 )
-  //front.x( 200 )
-  //front.y( 200 )
-
-  //front.y( 200 )
-
-  //frontR = front.clone()        
-  //frontR.flip('x')
-
-  // front.move( 400 )
-  //front.x( windowCenterX )    
-  // frontR.move( -400 )
-
-  // front.y( 200 )
-  // frontR.y( 200 )        
-  // front.transform( { scaleX: 1.2 } )
+  fpl.front = front 
+  fpl.leg = leg
+  fpl.frontM = frontM
+  fpl.legM = legM
 } 
+
+
+const resizeFpl = ( id, v )  => {
+  if ( id = 'scaleFront' ) scaleFront( v ) 
+}
+
+
+const scaleFront = v => {
+  console.log( fpl.front.bbox().w )
+
+  fpl.front.transform( { scaleX: v } )
+  fpl.frontM.transform( { scaleX: v } )
+}
+
+
+const addSelectors = () => {
+  let inp = document.createElement( 'input' )
+  inp.type = 'range'
+  inp.min = '35'
+  inp.max = '70'
+  inp.id = 'scaleFront'
+  inp.style.zIndex = '100'
+  inp.style.position = 'relative'
+  inp.style.bottom = window.innerHeight/3 + 'px'//20px'
+  inp.style.left = window.innerWidth/2 - 250 + 'px'
+  inp.style.width = window.innerWidth/5  + 'px'  
+  inp.value = '45'
+  inp.onkeydown = 'return false'
+  inp.oninput = e => resizeFpl( e.target.id, e.target.value/45 )	 
+  wrapperSvg.appendChild( inp ) 
+  ui.inpFrontWidth = inp
+}
+
+
+const resizeSelectors = () => {
+  ui.inpFrontWidth.style.bottom = window.innerHeight/10 + 'px'//20px'
+  ui.inpFrontWidth.style.left = window.innerWidth/2 - window.innerWidth/5  + 'px'  
+  ui.inpFrontWidth.style.width = window.innerWidth/5  + 'px' 
+}
+
+
+window.onresize = () => { 
+  resizeModel()
+  resizeSelectors()
+}   

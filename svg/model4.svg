@@ -1,20 +1,13 @@
-<!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">		
-</head>
-<body >
-  <object type="image/svg+xml" data="http://js.otrisovano.ru/tests/180322fireplace/05/svg/model4.svg" width="200" height="200" >
- </object>
-
-<div id = 'wrapperFireplaceModel' >  
-  <svg xmlns="http://www.w3.org/2000/svg" id='model' xml:space="preserve" width="1000px" height="1000px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW X8 -->
+<svg xmlns="http://www.w3.org/2000/svg" id='model' xml:space="preserve" width="1000px" height="1000px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
 viewBox="0 0 1000 1000"
  xmlns:xlink="http://www.w3.org/1999/xlink">
  <defs>
   <style type="text/css">
    <![CDATA[
-    .str0 {stroke:#362D06;stroke-width:1;stroke-linejoin:bevel}
+    .str0 {stroke:#362D06;stroke-width:2;stroke-linejoin:bevel}
     .fil0 {fill:none}
    ]]>
   </style>
@@ -840,15 +833,9 @@ viewBox="0 0 1000 1000"
  <line class="fil0 str0" x1="548" y1="35" x2="419" y2= "35" />
  <line class="fil0 str0" x1="558" y1="5" x2="419" y2= "5" />
 </symbol>
+ <g id="Слой_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <use x="3" y="1" width="504" height="996" xlink:href="#front"/>
+  <use y="1" width="162" height="996" xlink:href="#leg"/>
+ </g>
 </svg>
-</div> 
-
-<script src="jsLibs/jquery.min.js"></script>    
-<script src="jsLibs/svg.js"></script>
-<script src="js/main.js"></script>
-
-
-
-
-</body>
-</html>
