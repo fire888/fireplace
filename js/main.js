@@ -3,12 +3,13 @@ let mySVG
   , wrapperSvg
   , fpl = {
         front:  null
-      , frontScale: null
+      , widthFront: null
       , frontM: null
       , leg:    null
+      , widthLeg: null
       , legM:   null    
     }
-  , axisX = 1000
+  , axisX = 1400
   , floor = 1200
   , axis = null    
   , ui = {
@@ -61,33 +62,32 @@ const drawShtamp = () => {
   axis = mySVG.line( axisX, floor-15, axisX, floor+15 ).stroke({ width: 1 })
 }
 
-
 const drawFpl = () => {
   let legDef = SVG.select( '#leg' )
   let leg = mySVG.use( legDef.members[ 0 ] ) 
-  leg.size( 1000, 1000 )
   let legM = mySVG.use( legDef.members[ 0 ] ) 
-  legM.size( 1000, 1000 )
   legM.flip( 'x' )      
 
   let frontDef = SVG.select( '#front' )
   let front = mySVG.use( frontDef.members[ 0 ] ) 
-  front.size( 1000, 1000 )
   let frontM = mySVG.use( frontDef.members[ 0 ] ) 
-  frontM.size( 1000, 1000 )
   frontM.flip( 'x' )   
 
   let frontOffsetX = front.bbox().x
   let frontWidth = front.bbox().w
+  fpl.widthFront = front.bbox().w 
   let height = front.bbox().h 
 
-  front.x( -frontOffsetX + axisX  ) 
+  front.transform( { a: 1,e: axisX } )
+  //front.x( -frontOffsetX + axisX  ) 
   front.y( floor - height  )  
   frontM.x( -axisX + frontOffsetX + frontWidth )
   frontM.y( floor - height  )
 
   let legOffsetX = leg.bbox().x
   let legWidth = leg.bbox().w
+  fpl.widthLeg = leg.bbox().w
+
 
   leg.x( - legOffsetX + frontWidth + axisX )
   leg.y( floor - height  )
@@ -107,10 +107,26 @@ const resizeFpl = ( id, v )  => {
 
 
 const scaleFront = v => {
-  console.log( fpl.front.bbox().w )
+  //sx sy - ось
+  //"matrix(sx, 0, 0, sy, cx-sx*cx, cy-sy*cy)"
+  
+  // матрица трансформаций
+  // a c e
+  // b d f
+  // 0 0 1
 
-  fpl.front.transform( { scaleX: v } )
-  fpl.frontM.transform( { scaleX: v } )
+  // масштаб  
+  // x 0 aX  
+  // 0 y aY
+  // 0 0 1
+
+  fpl.front.transform( { a: v, e: axisX  } )
+  fpl.frontM.transform( { a: -v, e: axisX } ) 
+  fpl.frontM.x( v )
+  fpl.leg.x( axisX + fpl.widthFront*v  )   
+  fpl.legM.x( -axisX + fpl.widthFront*v + fpl.widthLeg )   
+ // fpl.front.transform( { scaleX: v } )
+ // fpl.frontM.transform( { scaleX: v } )
 }
 
 
