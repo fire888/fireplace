@@ -1,21 +1,27 @@
 
+
+/** VARS ***********************************************************/
+
 let mySVG
   , wrapperSvg
   , fpl = {
-        front:  null
+        front:      null
       , widthFront: null
-      , frontM: null
-      , leg:    null
-      , widthLeg: null
-      , legM:   null    
+      , frontM:     null
+      , leg:        null
+      , widthLeg:   null
+      , legM:       null    
     }
   , axisX = 1400
   , floor = 1200
   , axis = null    
   , ui = {
-      inpFrontWidth: null
+        inpFrontWidth: null
+	  , inpMainHeight: null
     }
 
+
+/** INIT ***********************************************************/	
 
 SVG.on(document, 'DOMContentLoaded', function() {
   loadModel() 
@@ -50,6 +56,8 @@ const resizeModel = () => {
   })
 }
 
+
+/** DRAW ELEMS *****************************************************/
 
 const drawShtamp = () => { 
   let polyline = mySVG.polygon( '200,50    2920,50   2920,2050   200,2050')
@@ -88,7 +96,6 @@ const drawFpl = () => {
   let legWidth = leg.bbox().w
   fpl.widthLeg = leg.bbox().w
 
-
   leg.x( - legOffsetX + frontWidth + axisX )
   leg.y( floor - height  )
   legM.x( -axisX+ legOffsetX + legWidth + frontWidth )
@@ -101,12 +108,7 @@ const drawFpl = () => {
 } 
 
 
-const resizeFpl = ( id, v )  => {
-  if ( id = 'scaleFront' ) scaleFront( v ) 
-}
-
-
-const scaleFront = v => {
+/** TRANSFORMATIONS ************************************************/
   //sx sy - ось
   //"matrix(sx, 0, 0, sy, cx-sx*cx, cy-sy*cy)"
   
@@ -120,39 +122,86 @@ const scaleFront = v => {
   // 0 y aY
   // 0 0 1
 
+const resizeFpl = ( id, v ) => {
+  if ( id == 'scaleFront' ) scaleFront( v )
+  if ( id == 'scaleHeight' ) scaleHeight( v ) 	  
+}
+
+
+const scaleFront = v => {
   fpl.front.transform( { a: v, e: axisX  } )
   fpl.frontM.transform( { a: -v, e: axisX } ) 
   fpl.frontM.x( v )
   fpl.leg.x( axisX + fpl.widthFront*v  )   
   fpl.legM.x( -axisX + fpl.widthFront*v + fpl.widthLeg )   
- // fpl.front.transform( { scaleX: v } )
- // fpl.frontM.transform( { scaleX: v } )
 }
 
 
+const scaleHeight = v => {	
+  fpl.front.scale( 1, v )
+  fpl.frontM.scale( 1, v )
+  fpl.leg.scale( 1, v )
+  fpl.legM.scale( 1, v )  
+}
+
+
+/** DRAW UI ********************************************************/
+
 const addSelectors = () => {
+  let inpFrontWidth = {
+      type: 'range'
+    , min:  '35'
+    , max:  '70'
+    , id: 'scaleFront'
+    , zIndex: '100'
+    , position: 'relative'
+	, display: 'block'
+    , bottom: window.innerHeight/3 + 'px'
+    , left: window.innerWidth/2 - 250 + 'px'
+    , width: window.innerWidth/5  + 'px'  
+    , value: '45'
+    , onkeydown:'return false'
+    , oninput: e => resizeFpl( e.target.id, e.target.value/45 )	  	  
+  }	
+  ui.inpFrontWidth =createSelector( inpFrontWidth ) 
+  
+  let inpMainHeight = {
+      id: 'scaleHeight'
+    , bottom: window.innerHeight/3 - 50 + 'px'	
+  }
+  let merge = Object.assign( inpFrontWidth, inpMainHeight )  
+  ui.inpMainHeight = createSelector( merge ) 
+}
+
+
+const createSelector = v => {
   let inp = document.createElement( 'input' )
-  inp.type = 'range'
-  inp.min = '35'
-  inp.max = '70'
-  inp.id = 'scaleFront'
-  inp.style.zIndex = '100'
-  inp.style.position = 'relative'
-  inp.style.bottom = window.innerHeight/3 + 'px'//20px'
-  inp.style.left = window.innerWidth/2 - 250 + 'px'
-  inp.style.width = window.innerWidth/5  + 'px'  
-  inp.value = '45'
-  inp.onkeydown = 'return false'
-  inp.oninput = e => resizeFpl( e.target.id, e.target.value/45 )	 
+  inp.type = v.type
+  inp.min = v.min
+  inp.max = v.max
+  inp.id = v.id
+  inp.style.zIndex = v.zIndex
+  inp.style.position = v.position
+  inp.style.display = v.display
+  inp.style.bottom = v.bottom
+  inp.style.left = v.left
+  inp.style.width = v.width
+  inp.value = v.value
+  inp.onkeydown = v.onkeydown
+  inp.oninput = v.oninput	 
   wrapperSvg.appendChild( inp ) 
-  ui.inpFrontWidth = inp
+  return inp
 }
 
 
 const resizeSelectors = () => {
-  ui.inpFrontWidth.style.bottom = window.innerHeight/10 + 'px'//20px'
+  ui.inpFrontWidth.style.bottom = window.innerHeight/10 + 'px'
   ui.inpFrontWidth.style.left = window.innerWidth/2 - window.innerWidth/5  + 'px'  
-  ui.inpFrontWidth.style.width = window.innerWidth/5  + 'px' 
+  ui.inpFrontWidth.style.width = window.innerWidth/5  + 'px'
+  
+  ui.inpMainHeight.style.bottom = window.innerHeight/10 - 50 + 'px'
+  ui.inpMainHeight.style.left = window.innerWidth/2 - window.innerWidth/5  + 'px'  
+  ui.inpMainHeight.style.width = window.innerWidth/5  + 'px'  
 }
 
 
