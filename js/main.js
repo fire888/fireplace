@@ -27,7 +27,7 @@ proto_Props = {
   flip:         1,
   scaleX:       1,
   scaleY:       1,
-  pointScale:   'bottomLeft', // || 'center' 
+  pointScale:   'leftBottom', // || 'center' || buttomCenter 
   rotation:     0,
   pX:           0,
   pY:           0
@@ -93,7 +93,7 @@ const drawShtamp = () => {
 const drawFireplace = () => {
   frontView.model = mySVG.group()
   frontView.props = Object.assign( {}, proto_Props )  
-  transformObj( frontView, 'pointScale', 'center' )
+  transformObj( frontView, 'pointScale', 'centerBottom' )
   transformObj( frontView, 'pX', axisX )
   transformObj( frontView, 'pY', floor )
 
@@ -128,8 +128,9 @@ const drawFlame = () => {
     'stroke-width': 1,
     'vector-effect': 'non-scaling-stroke'
   })
-  transformObj( flame, 'pX', axisX-350 )
-  transformObj( flame, 'pY', floor+300 )  
+  transformObj( flame, 'pointScale', 'centerBottom' )  
+  transformObj( flame, 'pX', axisX - 350 )
+  transformObj( flame, 'pY', floor + 300 )  
 }
 
 
@@ -141,13 +142,20 @@ const transformObj = ( obj, prop, val ) => {
     , pScaleX
     , pScaleY
     
-  if ( p.pointScale == "center" ) { pScaleX = pScaleY = false } 
-  if ( p.pointScale == "bottomLeft" ) { 
-     pScaleX = p.pX
-     pScaleY = p.pY
+  if ( p.pointScale == "center" ) { 
+    pScaleX = m.bbox().cx
+    pScaleY = m.bbox().cy  
   } 
+  if ( p.pointScale == "leftBottom" ) { 
+    pScaleX = p.pX
+    pScaleY = p.pY
+  }
+  if ( p.pointScale == "centerBottom" ) { 
+      pScaleX = m.bbox().cx
+      pScaleY = m.bbox().h 
+  }  
 
-  m.transform( { scaleY: 1, cx: pScaleX, cy: pScaleY + m.bbox().h  } )
+  m.transform( { scaleY: 1, cx: pScaleX, cy: pScaleY } )
    .transform( { scaleX: 1*p.flip, cx: pScaleX, cy: pScaleY }, true )
    .rotate( 0, p.pX, p.pY + m.bbox().h )  
    .move( 0, 0 )  
@@ -160,9 +168,7 @@ const transformObj = ( obj, prop, val ) => {
   m.move( p.pX, p.pY )   
    .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
    .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX, cy: pScaleY } ) 
-   .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY + m.bbox().h }, true ) 
-
-  console.log( m.x() + ' ' + m.y() )
+   .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY }, true ) 
 }
 
 
@@ -172,33 +178,30 @@ const drawUiElems = () => {
   createBlock( 'flame', ( parent ) => {
     createSelector({
         id: 'width'
-      , min: 30
-      , max: 1300
-      , value: 700   
-    , oninput: e => {} // transformObj( frontView, 'pX', e.target.value )     
+      , min: 2
+      , max: 200
+      , value: 100  
+      , oninput: e => transformObj( flame, 'scaleX', e.target.value/100 )     
     }, parent )
     , createSelector({
         id: 'height'
-      , min: 30
-      , max: 1000  
-      , value: 550
-    , oninput: e => {}// transformObj( frontView, 'pY', e.target.value )      
+      , min: 2
+      , max: 200  
+      , value: 100
+      , oninput: e => transformObj( flame, 'scaleY', e.target.value/100 )     
     }, parent )
+    , createSelector({
+        id: 'heightUnderFloor'
+      , min: -100
+      , max: 300
+      , value: 0
+      , oninput: e => { 
+          flame.model.y( flame.props.pY - ( +e.target.value ) ) // !mistake
+        }
+      }, parent )    
   })  
   createBlock( 'front View', ( parent ) => {
     createSelector({
-        id: 'moveFrontViewX'
-      , min: 0
-      , max: 2950    
-    , oninput: e => transformObj( frontView, 'pX', e.target.value )     
-    }, parent )
-    , createSelector({
-        id: 'moveFrontViewY'
-      , min: 0
-      , max: 2100  
-    , oninput: e => transformObj( frontView, 'pY', e.target.value )      
-    }, parent )
-    , createSelector({
         id: 'scaleViewFront'
       , min: 2
       , max: 200  
@@ -251,6 +254,7 @@ const resizeWindow = () => {
   }else{
     uiWrapper.style.flexDirection = 'column'     
   } 
+
   if ( w/h > 1.7 ) { 
     wSvg = ( h - 20 )*1.415 - 3 
     hSvg = h - 20 - 3 
@@ -269,8 +273,8 @@ const resizeWindow = () => {
     uiWrapper.style.height = hSvg + 'px' 
     uiWrapper.style.width = w - wSvg - 3 + 'px'     
     mySVG.attr({ 
-        width: wSvg * 0.6
-      , height: hSvg * 0.6
+        width: wSvg * 0.85
+      , height: hSvg * 0.85
     })        
   }      
   if ( w/h < 1 ) {  
