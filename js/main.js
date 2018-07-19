@@ -32,6 +32,12 @@ proto_Props = {
   pX:           0,
   pY:           0
 },
+flame = {
+  model: null,
+  props: null
+},
+axisX = 1200,
+floor = 215,
 svg,  
 appWrapper,  
 uiWrapper   
@@ -42,30 +48,17 @@ uiWrapper
 SVG.on( document, 'DOMContentLoaded', () => {
   prepearWindow() 
   initSvg() 
-  resizeSvg()
-  drawShtamp()    
+  drawShtamp()
+  drawFlame()       
   drawFireplace()
   drawUiElems()
 
-  test_drawElem()
-  test_drawUi()
+  //test_drawElem()
+  //test_drawUi()
+
+  resizeWindow()
 })
 
-const prepearWindow = () => {
-  document.body.style.margin = 0
-  document.body.style.padding = 0 
-  document.body.style.backgroundColor = '#000000'
-
-  appWrapper = document.getElementById( 'app' )
-
-  svgWrapper = document.getElementById( 'wrapperFireplaceModel' ) 
-  svgWrapper.style.display = 'inline-block'
-  svgWrapper.style.float = 'left'
-  
-  svg = document.getElementById( 'model' )
-  svg.style.width = 'auto' 
-  svg.style.height = '70%'   
-} 
 
 const initSvg = () => {
   mySVG = SVG( 'model' )
@@ -73,34 +66,7 @@ const initSvg = () => {
       id: "mySVG"
     , 'vector-effect' : 'non-scaling-stroke'
   })
-  mySVG.style.display = 'inline' 
   mySVG.viewbox(0, 0, 2970, 2100)
-}
-
-const resizeSvg = () => { 
-  let w = window.innerWidth
-  let h = window.innerHeight
-  let sv, sh 
-
-  if ( w/h > 1.6 ) {
-    sw = window.innerHeight*1.4
-    sh = window.innerHeight 
-    console.log( 'gor' )
-  }  
-  if (  w/h > 1 && w/h < 1.6 ) {
-    sw = window.innerWidth*0.7
-    sh = sw*0.7  
-    console.log( 'another' )
-  } 
-  if ( w/h < 1 ) {
-    sw = window.innerWidth
-    sh = sw*0.7  
-    console.log( 'vert' )
-  } 
-  mySVG.attr({ 
-     width: sw
-   , height: sh
-  })
 }
 
 
@@ -114,7 +80,13 @@ const drawShtamp = () => {
     , 'stroke-width': 1
     , 'vector-effect': 'non-scaling-stroke'
   })
-  //axis = mySVG.line( axisX, floor-15, axisX, floor+15 ).stroke({ width: 1 })
+  let polylineframe = mySVG.polygon( '2,2    2968,2   2968,2098   2,2098')
+   .attr({ 
+      fill: 'none'
+    , stroke: '#d0db7d'
+    , 'stroke-width': 1
+    , 'vector-effect': 'non-scaling-stroke'
+  })  
 }
 
 
@@ -122,8 +94,8 @@ const drawFireplace = () => {
   frontView.model = mySVG.group()
   frontView.props = Object.assign( {}, proto_Props )  
   transformObj( frontView, 'pointScale', 'center' )
-  transformObj( frontView, 'pX', 1200 )
-  transformObj( frontView, 'pY', 800 )
+  transformObj( frontView, 'pX', axisX )
+  transformObj( frontView, 'pY', floor )
 
   let frontDef = SVG.select( '#front' )
   frontModelDef = frontDef // test geom
@@ -145,7 +117,20 @@ const drawFireplace = () => {
   f.legL.props = Object.assign( {}, proto_Props )
   transformObj( f.legL, 'flip', -1 )  
   transformObj( f.legL, 'pX', f.frontL.model.bbox().w )   
-} 
+}
+
+const drawFlame = () => {
+  flame.model = mySVG.rect(700, 550)
+  flame.props = Object.assign( {}, proto_Props ) 
+  flame.model.attr({ 
+    fill: '#27242d',
+    stroke: '#edda5c',
+    'stroke-width': 1,
+    'vector-effect': 'non-scaling-stroke'
+  })
+  transformObj( flame, 'pX', axisX-350 )
+  transformObj( flame, 'pY', floor+300 )  
+}
 
 
 /*****************************************************************************/
@@ -168,20 +153,38 @@ const transformObj = ( obj, prop, val ) => {
    .move( 0, 0 )  
   
   if ( typeof val == 'string' ) 
-    eval( 'obj.props.' + prop + ' = ' + '"' +  val + '"' ) 
-   if ( typeof val == 'number' ) 
-    eval( 'obj.props.' + prop + ' = ' + val  ) 
+    eval( 'obj.props.' + prop + ' = ' + '"' + val + '"' ) 
+  if ( typeof val == 'number' ) 
+    eval( 'obj.props.' + prop + ' = ' + val ) 
 
-   m.move( p.pX, p.pY )   
-    .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
-    .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX, cy: pScaleY } ) 
-    .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY + m.bbox().h }, true ) 
+  m.move( p.pX, p.pY )   
+   .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
+   .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX, cy: pScaleY } ) 
+   .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY + m.bbox().h }, true ) 
+
+  console.log( m.x() + ' ' + m.y() )
 }
 
 
 /*****************************************************************************/
 
-const drawUiElems = () => {   
+const drawUiElems = () => {
+  createBlock( 'flame', ( parent ) => {
+    createSelector({
+        id: 'width'
+      , min: 30
+      , max: 1300
+      , value: 700   
+    , oninput: e => {} // transformObj( frontView, 'pX', e.target.value )     
+    }, parent )
+    , createSelector({
+        id: 'height'
+      , min: 30
+      , max: 1000  
+      , value: 550
+    , oninput: e => {}// transformObj( frontView, 'pY', e.target.value )      
+    }, parent )
+  })  
   createBlock( 'front View', ( parent ) => {
     createSelector({
         id: 'moveFrontViewX'
@@ -210,7 +213,6 @@ const drawUiElems = () => {
       , oninput: e => transformObj( frontView, 'scaleY', e.target.value/100 )          
     }, parent )
   })
-
   createBlock( 'mainElement', ( parent ) => {               
     createSelector({
         id: 'changeMainWidth'
@@ -228,21 +230,78 @@ const drawUiElems = () => {
 }
 
 
+const prepearWindow = () => {
+
+  appWrapper = document.getElementById( 'app' )
+
+  uiWrapper = document.createElement( 'div' )
+  uiWrapper.id = 'uiWrapper'
+  appWrapper.appendChild( uiWrapper )  
+}
+
+
+const resizeWindow = () => {
+  let w = window.innerWidth
+  let h = window.innerHeight
+  appWrapper.style.width = w + 'px'
+  appWrapper.style.height = h + 15 + 'px'  
+
+  if ( w/h > 2.3 ) { 
+    uiWrapper.style.flexDirection = 'row'      
+  }else{
+    uiWrapper.style.flexDirection = 'column'     
+  } 
+  if ( w/h > 1.7 ) { 
+    wSvg = ( h - 20 )*1.415 - 3 
+    hSvg = h - 20 - 3 
+    appWrapper.style.flexDirection = 'row'
+    uiWrapper.style.height = hSvg + 'px' 
+    uiWrapper.style.width = w - wSvg - 3 + 'px' 
+    mySVG.attr({ 
+        width: wSvg
+      , height: hSvg
+    })        
+  }
+  if ( w/h > 1.2 && w/h < 1.7 ) { 
+    wSvg = w-20
+    hSvg = (w-20)*0.7 
+    appWrapper.style.flexDirection = 'row'
+    uiWrapper.style.height = hSvg + 'px' 
+    uiWrapper.style.width = w - wSvg - 3 + 'px'     
+    mySVG.attr({ 
+        width: wSvg * 0.6
+      , height: hSvg * 0.6
+    })        
+  }      
+  if ( w/h < 1 ) {  
+    wSvg = w - 20
+    hSvg = (w - 20)*0.7      
+    appWrapper.style.flexDirection = 'column'
+    uiWrapper.style.width = wSvg - 3  + 'px'
+    uiWrapper.style.height = h - hSvg -3  + 'px'    
+    mySVG.attr({ 
+        width: wSvg
+      , height: hSvg
+  }) 
+  }     
+} 
+
+
 const createBlock = ( str, addElems ) => {
   let newElem = document.createElement( 'div' )
-  newElem.style.display = 'inline-block'
-  newElem.style.float = 'left'
   newElem.style.margin = '5px'
-  newElem.style.padding.top = '0px'   
-  newElem.style.color = '#bcb26d'  
-  newElem.style.backgroundColor = '#6b3a28'  
+  newElem.style.padding = '0px'      
+  newElem.style.color = '#766c44'  
+  newElem.style.backgroundColor = '#1c1c1e'  
   newElem.style.borderRadius = '5px' 
   newElem.style.overflow = 'hidden'
-  appWrapper.appendChild( newElem )   
+  newElem.class = 'uiblock'
+  newElem.style.flex = '1 0 auto'
+  uiWrapper.appendChild( newElem )   
 
   let head = document.createElement( 'div' )
   str ? head.innerHTML = str :  head.innerHTML = ' ' 
-  head.style.backgroundColor = "#a89c4e"
+  head.style.backgroundColor = "#27242d"
   head.style.color = '#5f5d4d' 
   head.style.paddingLeft = '15px'  
   head.style.marginBottom = '5px'    
@@ -262,9 +321,8 @@ const createSelector = ( props, parent ) => {
     , zIndex = '100'
     , position = 'relative'
     , display = 'block'
-    , marginBottom = '2px'
-    , left = '0px'
-    , width = '90%'  
+    , margin = '5px'
+    , width = '70%'  
     , onkeydown = 'return false'
     , oninput = () => {}  	  
   } = props
@@ -281,8 +339,7 @@ const createSelector = ( props, parent ) => {
   newElem.style.zIndex = zIndex
   newElem.style.position = position
   newElem.style.display = display
-  newElem.style.marginBottom = marginBottom
-  newElem.style.left = left
+  newElem.style.margin = margin
   newElem.style.width = width
   newElem.min = min
   newElem.max = max  
@@ -300,8 +357,7 @@ const createButton = ( props, parent ) => {
       , zIndex = '100'
       , position = 'relative'
       , display = 'block'
-      , marginBottom = '2px'
-      , left = '0px' 
+      , margin= '2px'
       , width = '100px'
       , value = null
       , onkeydown = null
@@ -315,8 +371,7 @@ const createButton = ( props, parent ) => {
   newElem.style.zIndex = zIndex
   newElem.style.position = position
   newElem.style.display = display
-  newElem.style.marginBottom = marginBottom
-  newElem.style.left = left
+  newElem.style.margin= margin
   newElem.style.width = width
   newElem.value = value
   newElem.onkeydown = onkeydown
@@ -326,16 +381,12 @@ const createButton = ( props, parent ) => {
   return newElem
 }
 
-const resizeUi = () => {}
 
 
 /*****************************************************************************/
 
-window.onresize = () => { 
-  console.log('!')
-  resizeSvg()
-  resizeUi()
-}   
+window.onresize = () => resizeWindow()
+
 
 
 
