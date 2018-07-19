@@ -1,74 +1,76 @@
 
 
-let mySVG
-  , axisX =        1400
-  , floor =        1200
-  , axis  =        null
-  , frontView = {
-        model:   null
-      , props:   null
-    }  
-  , f = {  
-      frontR: {
-          model:   null
-        , props:   null 
-      }
-      , frontL: {
-          model:   null
-        , props:   null 
-      }       
-      , legR: { 
-          model:   null
-        , props:   null 
-      }
-      , legL: { 
-          model:   null
-        , props:   null 
-      }      
-    }
-  , proto_Props = {
-      flip:       1
-    , scaleX:     1
-    , scaleY:     1
-    , pointScale: 'bottomLeft' // || 'center' 
-    , rotation:   0
-    , pX:         0
-    , pY:         0
-  }   
-  , testModel
-  , testModeldata = {
-        flip:       1
-      , scaleX:     1
-      , scaleY:     1
-      , rotation:   0
-      , pX:         0
-      , pY:         0  
-    }
-  , uiWrapper 
+let mySVG, 
+frontView = {
+  model: null,
+  props: null
+},  
+f = {  
+  frontR: {
+    model: null,
+    props: null 
+  },
+  frontL: {
+    model: null,
+    props: null 
+  },       
+  legR: { 
+    model: null,
+    props: null 
+  },
+  legL: { 
+    model: null,
+    props: null, 
+  }      
+},
+proto_Props = {
+  flip:         1,
+  scaleX:       1,
+  scaleY:       1,
+  pointScale:   'bottomLeft', // || 'center' 
+  rotation:     0,
+  pX:           0,
+  pY:           0
+},
+svg,  
+appWrapper,  
+uiWrapper   
 
 
 /*****************************************************************************/
 
 SVG.on( document, 'DOMContentLoaded', () => {
+  prepearWindow() 
   initSvg() 
   resizeSvg()
   drawShtamp()    
   drawFireplace()
-  createUiWrapper()
   drawUiElems()
+
+  test_drawElem()
+  test_drawUi()
 })
 
+const prepearWindow = () => {
+  document.body.style.margin = 0
+  document.body.style.padding = 0 
+  document.body.style.backgroundColor = '#000000'
+
+  appWrapper = document.getElementById( 'app' )
+
+  svgWrapper = document.getElementById( 'wrapperFireplaceModel' ) 
+  svgWrapper.style.display = 'inline-block'
+  svgWrapper.style.float = 'left'
+  
+  svg = document.getElementById( 'model' )
+  svg.style.width = 'auto' 
+  svg.style.height = '70%'   
+} 
 
 const initSvg = () => {
-  document.body.style.margin = 0
-  document.body.style.padding = 0
-  document.body.style.overflow = 'hidden' 
-  document.body.style.backgroundColor = '#eeeeff'
   mySVG = SVG( 'model' )
   mySVG.attr({ 
       id: "mySVG"
-    , width: window.innerWidth
-    , height: window.innerHeight
     , 'vector-effect' : 'non-scaling-stroke'
   })
   mySVG.style.display = 'inline' 
@@ -76,9 +78,28 @@ const initSvg = () => {
 }
 
 const resizeSvg = () => { 
+  let w = window.innerWidth
+  let h = window.innerHeight
+  let sv, sh 
+
+  if ( w/h > 1.6 ) {
+    sw = window.innerHeight*1.4
+    sh = window.innerHeight 
+    console.log( 'gor' )
+  }  
+  if (  w/h > 1 && w/h < 1.6 ) {
+    sw = window.innerWidth*0.7
+    sh = sw*0.7  
+    console.log( 'another' )
+  } 
+  if ( w/h < 1 ) {
+    sw = window.innerWidth
+    sh = sw*0.7  
+    console.log( 'vert' )
+  } 
   mySVG.attr({ 
-      width: window.innerWidth
-    , height: window.innerHeight
+     width: sw
+   , height: sh
   })
 }
 
@@ -89,11 +110,11 @@ const drawShtamp = () => {
   let polyline = mySVG.polygon( '200,50    2920,50   2920,2050   200,2050')
    .attr({ 
       fill: 'none'
-    , stroke: '#000'
+    , stroke: '#d0db7d'
     , 'stroke-width': 1
     , 'vector-effect': 'non-scaling-stroke'
   })
-  axis = mySVG.line( axisX, floor-15, axisX, floor+15 ).stroke({ width: 1 })
+  //axis = mySVG.line( axisX, floor-15, axisX, floor+15 ).stroke({ width: 1 })
 }
 
 
@@ -105,6 +126,7 @@ const drawFireplace = () => {
   transformObj( frontView, 'pY', 800 )
 
   let frontDef = SVG.select( '#front' )
+  frontModelDef = frontDef // test geom
   
   f.frontR.model = frontView.model.use( frontDef.members[ 0 ] )
   f.frontR.props = Object.assign( {}, proto_Props )
@@ -123,8 +145,6 @@ const drawFireplace = () => {
   f.legL.props = Object.assign( {}, proto_Props )
   transformObj( f.legL, 'flip', -1 )  
   transformObj( f.legL, 'pX', f.frontL.model.bbox().w )   
-  
-  testModel = mySVG.use( frontDef.members[ 0 ] ) 
 } 
 
 
@@ -157,6 +177,219 @@ const transformObj = ( obj, prop, val ) => {
     .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX, cy: pScaleY } ) 
     .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY + m.bbox().h }, true ) 
 }
+
+
+/*****************************************************************************/
+
+const drawUiElems = () => {   
+  createBlock( 'front View', ( parent ) => {
+    createSelector({
+        id: 'moveFrontViewX'
+      , min: 0
+      , max: 2950    
+    , oninput: e => transformObj( frontView, 'pX', e.target.value )     
+    }, parent )
+    , createSelector({
+        id: 'moveFrontViewY'
+      , min: 0
+      , max: 2100  
+    , oninput: e => transformObj( frontView, 'pY', e.target.value )      
+    }, parent )
+    , createSelector({
+        id: 'scaleViewFront'
+      , min: 2
+      , max: 200  
+      , value: 100      
+      , oninput: e => transformObj( frontView, 'scaleX', e.target.value/100 )      
+    }, parent )  
+    , createSelector({
+        id: 'changeHeight'
+      , min: 2
+      , max: 200
+      , value: 100    
+      , oninput: e => transformObj( frontView, 'scaleY', e.target.value/100 )          
+    }, parent )
+  })
+
+  createBlock( 'mainElement', ( parent ) => {               
+    createSelector({
+        id: 'changeMainWidth'
+      , min: 2
+      , max: 200
+      , value: 100
+      , oninput: e => {
+          transformObj( f.frontR, 'scaleX', e.target.value/100 )
+          transformObj( f.frontL, 'scaleX', e.target.value/100 )
+          transformObj( f.legR, 'pX', e.target.value/100*f.frontR.model.bbox().w )
+          transformObj( f.legL, 'pX', e.target.value/100*f.frontL.model.bbox().w )  
+        }          
+    }, parent )
+  })       
+}
+
+
+const createBlock = ( str, addElems ) => {
+  let newElem = document.createElement( 'div' )
+  newElem.style.display = 'inline-block'
+  newElem.style.float = 'left'
+  newElem.style.margin = '5px'
+  newElem.style.padding.top = '0px'   
+  newElem.style.color = '#bcb26d'  
+  newElem.style.backgroundColor = '#6b3a28'  
+  newElem.style.borderRadius = '5px' 
+  newElem.style.overflow = 'hidden'
+  appWrapper.appendChild( newElem )   
+
+  let head = document.createElement( 'div' )
+  str ? head.innerHTML = str :  head.innerHTML = ' ' 
+  head.style.backgroundColor = "#a89c4e"
+  head.style.color = '#5f5d4d' 
+  head.style.paddingLeft = '15px'  
+  head.style.marginBottom = '5px'    
+  newElem.appendChild( head )
+  
+  addElems( newElem )      
+}
+
+
+const createSelector = ( props, parent ) => {
+  let {
+      type = 'range'
+    , min = -50
+    , max = 50
+    , value = 0
+    , id = 'scaleFront'
+    , zIndex = '100'
+    , position = 'relative'
+    , display = 'block'
+    , marginBottom = '2px'
+    , left = '0px'
+    , width = '90%'  
+    , onkeydown = 'return false'
+    , oninput = () => {}  	  
+  } = props
+  
+  let inpName = document.createElement( 'p' )
+  inpName.innerHTML = id
+  inpName.style.margin = '0px'
+  inpName.style.marginLeft = '15px'
+  parent.appendChild( inpName )   
+
+  let newElem = document.createElement( 'input' )
+  newElem.type = type
+  newElem.id = id
+  newElem.style.zIndex = zIndex
+  newElem.style.position = position
+  newElem.style.display = display
+  newElem.style.marginBottom = marginBottom
+  newElem.style.left = left
+  newElem.style.width = width
+  newElem.min = min
+  newElem.max = max  
+  newElem.value = value
+  newElem.onkeydown = onkeydown
+  newElem.oninput = oninput	 
+  parent.appendChild( newElem ) 
+  return newElem
+}
+
+
+const createButton = ( props, parent ) => {
+  let {
+        id = 'flip'
+      , zIndex = '100'
+      , position = 'relative'
+      , display = 'block'
+      , marginBottom = '2px'
+      , left = '0px' 
+      , width = '100px'
+      , value = null
+      , onkeydown = null
+      , oninput = null
+      , onclick = () => {}  
+  } = props
+
+  let newElem = document.createElement( 'button' )
+  newElem.id = id
+  newElem.innerHTML = id
+  newElem.style.zIndex = zIndex
+  newElem.style.position = position
+  newElem.style.display = display
+  newElem.style.marginBottom = marginBottom
+  newElem.style.left = left
+  newElem.style.width = width
+  newElem.value = value
+  newElem.onkeydown = onkeydown
+  newElem.oninput = oninput
+  newElem.onclick = onclick
+  parent.appendChild( newElem ) 
+  return newElem
+}
+
+const resizeUi = () => {}
+
+
+/*****************************************************************************/
+
+window.onresize = () => { 
+  console.log('!')
+  resizeSvg()
+  resizeUi()
+}   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// TRESH
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+
+// Test Vars
+let frontModelDef,
+testModel,
+testModeldata = {
+  flip:       1,
+  scaleX:     1,
+  scaleY:     1,
+  rotation:   0,
+  pX:         0,
+  pY:         0  
+}
+
+
+/*****************************************************************************/
+
+const test_drawElem = () => {
+  testModel = mySVG.use( frontModelDef.members[ 0 ] ) 
+}
+
 
 /*****************************************************************************/
 
@@ -204,188 +437,39 @@ const testScaleY = v => {
   testModeldata.scaleY = v
 }
 
-
 /*****************************************************************************/
 
-const createUiWrapper = () => {
-  uiWrapper = document.createElement( 'div' )
-  uiWrapper.id = 'uiWrapper'
-  uiWrapper.style.position = 'absolute'
-  uiWrapper.style.zIndex = '300'
-  uiWrapper.style.bottom = '50px'
-  uiWrapper.style.right = '30px' 
-  uiWrapper.style.backgroundColor = '#aaaaaa' 
-  uiWrapper.style.color = '#ffffff' 
-  uiWrapper.style.overflow = 'hidden'
-  document.body.appendChild( uiWrapper )
-} 
 
-
-const drawUiElems = () => {   
-  createSeparator( 'test Element' ) 
+const test_drawUi = () => {
+  createBlock ( 'test Element', ( parent ) => { 
   createButton({
       id: 'testFlip'
     , onclick: e =>  transformTest( () => testFlip() )   
-  })
+  }, parent ),
   createButton({
       id: 'testUnFlip'
     , onclick: e =>  transformTest( () => testUnFlip() )  
-  })    
+  }, parent ) ,   
   createSelector({
       id: 'testMoveX'
     , oninput: e => transformTest( () => testMoveX( e.target.value/50 )	)     
-  })  
+  }, parent ),  
   createSelector({
       id: 'testMoveY'
     , oninput: e => transformTest( () => testMoveY( e.target.value/50 ) )     
-  })   
+  }, parent ),   
   createSelector({
       id: 'testRotate'
     , oninput: e => transformTest( () => testRotate( e.target.value/50 ) )
-  })  
+  }, parent ),  
   createSelector({
       id: 'testScaleX'
     , oninput: e => transformTest( () => testScaleX( e.target.value/50 ) )
-  })   
+  }, parent ),   
   createSelector({
       id: 'testScaleY'
     , oninput: e => transformTest( () => testScaleY( e.target.value/50 ) )	 
+  }, parent )
   })
-  createSeparator( 'front Group' )
-  createSelector({
-      id: 'moveFrontViewX'
-    , min: 0
-    , max: 2950    
-  , oninput: e => transformObj( frontView, 'pX', e.target.value )     
-  })
-  createSelector({
-      id: 'moveFrontViewY'
-    , min: 0
-    , max: 2100  
-  , oninput: e => transformObj( frontView, 'pY', e.target.value )      
-  })
-  createSelector({
-      id: 'scaleViewFront'
-    , min: 2
-    , max: 200  
-    , value: 100      
-    , oninput: e => transformObj( frontView, 'scaleX', e.target.value/100 )      
-  })  
-  createSelector({
-      id: 'changeHeight'
-    , min: 2
-    , max: 200
-    , value: 100    
-    , oninput: e => transformObj( frontView, 'scaleY', e.target.value/100 )          
-  })     
-  createSeparator( 'mainElement' )               
-  createSelector({
-      id: 'changeMainWidth'
-    , min: 2
-    , max: 200
-    , value: 100
-    , oninput: e => {
-         transformObj( f.frontR, 'scaleX', e.target.value/100 )
-         transformObj( f.frontL, 'scaleX', e.target.value/100 )
-         transformObj( f.legR, 'pX', e.target.value/100*f.frontR.model.bbox().w )
-         transformObj( f.legL, 'pX', e.target.value/100*f.frontL.model.bbox().w )  
-      }          
-  })       
 }
 
-
-const createSelector = props => {
-  let {
-      type = 'range'
-    , min = -50
-    , max = 50
-    , value = 0
-    , id = 'scaleFront'
-    , zIndex = '100'
-    , position = 'relative'
-    , display = 'block'
-    , marginBottom = '2px'
-    , left = '0px'
-    , width = window.innerWidth/5  + 'px'  
-    , onkeydown = 'return false'
-    , oninput = () => {}  	  
-  } = props
-  
-  let inpName = document.createElement( 'p' )
-  inpName.innerHTML = id
-  inpName.style.margin = '0px'
-  inpName.style.marginLeft = '15px'
-  uiWrapper.appendChild( inpName )   
-
-  let inp = document.createElement( 'input' )
-  inp.type = type
-  inp.id = id
-  inp.style.zIndex = zIndex
-  inp.style.position = position
-  inp.style.display = display
-  inp.style.marginBottom = marginBottom
-  inp.style.left = left
-  inp.style.width = width
-  inp.min = min
-  inp.max = max  
-  inp.value = value
-  inp.onkeydown = onkeydown
-  inp.oninput = oninput	 
-  uiWrapper.appendChild( inp ) 
-  return inp
-}
-
-
-const createButton = props => {
-  let {
-        id = 'flip'
-      , zIndex = '100'
-      , position = 'relative'
-      , display = 'inline'
-      , marginBottom = '2px'
-      , left = '0px' 
-      , width = '100px'
-      , value = null
-      , onkeydown = null
-      , oninput = null
-      , onclick = () => {}  
-  } = props
-
-  let inp = document.createElement( 'button' )
-  inp.id = id
-  inp.innerHTML = id
-  inp.style.zIndex = zIndex
-  inp.style.position = position
-  inp.style.display = display
-  inp.style.marginBottom = marginBottom
-  inp.style.left = left
-  inp.style.width = width
-  inp.value = value
-  inp.onkeydown = onkeydown
-  inp.oninput = oninput
-  inp.onclick = onclick
-  uiWrapper.appendChild( inp ) 
-  return inp
-}
-
-
-const createSeparator = v => {
-  let inp = document.createElement( 'div' )
-  inp.style.width = '100%'
-  inp.style.height = '20px'
-  inp.style.color = '#999999'  
-  inp.style.backgroundColor= '#ffffff' 
-  inp.style.paddingLeft= '15px' 
-  v ? inp.innerHTML = v :  inp.innerHTML = ' ' 
-  uiWrapper.appendChild( inp )     
-}
-
-const resizeUi = () => {}
-
-
-/*****************************************************************************/
-
-window.onresize = () => { 
-  resizeSvg()
-  resizeUi()
-}   
