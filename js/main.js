@@ -27,11 +27,19 @@ proto_Props = {
   flip:         1,
   scaleX:       1,
   scaleY:       1,
-  pointScale:   'bottomLeft', // || 'center' 
+  pointScale:   'leftBottom', // || 'center' || buttomCenter 
   rotation:     0,
   pX:           0,
-  pY:           0
+  pY:           0,
+  outlineX:     0,
+  outlineY:     0
 },
+flame = {
+  model: null,
+  props: null
+},
+axisX = 1200,
+floor = 215,
 svg,  
 appWrapper,  
 uiWrapper   
@@ -42,7 +50,8 @@ uiWrapper
 SVG.on( document, 'DOMContentLoaded', () => {
   prepearWindow() 
   initSvg() 
-  drawShtamp()    
+  drawShtamp()
+  drawFlame()       
   drawFireplace()
   drawUiElems()
 
@@ -86,9 +95,9 @@ const drawShtamp = () => {
 const drawFireplace = () => {
   frontView.model = mySVG.group()
   frontView.props = Object.assign( {}, proto_Props )  
-  transformObj( frontView, 'pointScale', 'center' )
-  transformObj( frontView, 'pX', 1200 )
-  transformObj( frontView, 'pY', 800 )
+  transformObj( frontView, 'pointScale', 'centerBottom' )
+  transformObj( frontView, 'pX', axisX )
+  transformObj( frontView, 'pY', floor )
 
   let frontDef = SVG.select( '#front' )
   frontModelDef = frontDef // test geom
@@ -110,24 +119,45 @@ const drawFireplace = () => {
   f.legL.props = Object.assign( {}, proto_Props )
   transformObj( f.legL, 'flip', -1 )  
   transformObj( f.legL, 'pX', f.frontL.model.bbox().w )   
-} 
+}
+
+const drawFlame = () => {
+  flame.model = mySVG.rect(700, 550)
+  flame.props = Object.assign( {}, proto_Props ) 
+  flame.model.attr({ 
+    fill: '#27242d',
+    stroke: '#edda5c',
+    'stroke-width': 1,
+    'vector-effect': 'non-scaling-stroke'
+  })
+  transformObj( flame, 'pointScale', 'centerBottom' )  
+  transformObj( flame, 'pX', axisX - 350 )
+  transformObj( flame, 'pY', 500)  
+}
 
 
 /*****************************************************************************/
 
-const transformObj = ( obj, prop, val ) => {
+const transformElem = ( obj, prop, val ) => {
   let m = obj.model
     , p = obj.props
     , pScaleX
     , pScaleY
     
-  if ( p.pointScale == "center" ) { pScaleX = pScaleY = false } 
-  if ( p.pointScale == "bottomLeft" ) { 
-     pScaleX = p.pX
-     pScaleY = p.pY
+  if ( p.pointScale == "center" ) { 
+    pScaleX = m.bbox().cx
+    pScaleY = m.bbox().cy  
   } 
+  if ( p.pointScale == "leftBottom" ) { 
+    pScaleX = p.pX
+    pScaleY = p.pY
+  }
+  if ( p.pointScale == "centerBottom" ) { 
+    pScaleX = m.bbox().cx
+    pScaleY = p.pY + m.bbox().h + p.outlineY
+  }  
 
-  m.transform( { scaleY: 1, cx: pScaleX, cy: pScaleY + m.bbox().h  } )
+  m.transform( { scaleY: 1, cx: pScaleX, cy: pScaleY } )
    .transform( { scaleX: 1*p.flip, cx: pScaleX, cy: pScaleY }, true )
    .rotate( 0, p.pX, p.pY + m.bbox().h )  
    .move( 0, 0 )  
@@ -137,30 +167,80 @@ const transformObj = ( obj, prop, val ) => {
   if ( typeof val == 'number' ) 
     eval( 'obj.props.' + prop + ' = ' + val ) 
 
-  m.move( p.pX, p.pY )   
+  m.move( p.pX + p.outlineX, p.pY + p.outlineY )   
    .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
    .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX, cy: pScaleY } ) 
-   .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY + m.bbox().h }, true ) 
+   .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY }, true ) 
+}
+
+
+const transformObj = ( obj, prop, val ) => {
+  let m = obj.model
+    , p = obj.props
+    , pScaleX
+    , pScaleY
+    
+  if ( p.pointScale == "center" ) { 
+    pScaleX = m.bbox().cx
+    pScaleY = m.bbox().cy  
+  } 
+  if ( p.pointScale == "leftBottom" ) { 
+    pScaleX = p.pX
+    pScaleY = p.pY
+  }
+  if ( p.pointScale == "centerBottom" ) { 
+    pScaleX = m.bbox().cx + p.outlineX
+    pScaleY = m.bbox().h// + p.pX + p.outlineY // + p.outlineY 
+    console.log( p.outlineY )
+  }  
+
+  m.transform( { scaleY: 1, cx: pScaleX, cy: pScaleY } )
+   .transform( { scaleX: 1*p.flip, cx: pScaleX, cy: pScaleY }, true )
+   .rotate( 0, p.pX, p.pY + m.bbox().h )  
+   .move( 0, 0 )  
+  
+  if ( typeof val == 'string' ) 
+    eval( 'obj.props.' + prop + ' = ' + '"' + val + '"' ) 
+  if ( typeof val == 'number' ) 
+    eval( 'obj.props.' + prop + ' = ' + val ) 
+
+  m.move( p.pX + p.outlineX, p.pY + p.outlineY )   
+   .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
+   .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX, cy: pScaleY } ) 
+   .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY }, true ) 
 }
 
 
 /*****************************************************************************/
 
-const drawUiElems = () => {   
+const drawUiElems = () => {
+  createBlock( 'flame', ( parent ) => {
+    createSelector({
+        id: 'width'
+      , min: 2
+      , max: 200
+      , value: 100  
+      , oninput: e => transformElem( flame, 'scaleX', e.target.value/100 )     
+    }, parent )
+    , createSelector({
+        id: 'height'
+      , min: 2
+      , max: 200  
+      , value: 100
+      , oninput: e => transformElem( flame, 'scaleY', e.target.value/100 )     
+    }, parent )
+    , createSelector({
+        id: 'heightUnderFloor'
+      , min: -100
+      , max: 300
+      , value: 0
+      , oninput: e => { 
+          transformElem( flame, 'outlineY', +e.target.value )
+        }
+      }, parent )    
+  })  
   createBlock( 'front View', ( parent ) => {
     createSelector({
-        id: 'moveFrontViewX'
-      , min: 0
-      , max: 2950    
-    , oninput: e => transformObj( frontView, 'pX', e.target.value )     
-    }, parent )
-    , createSelector({
-        id: 'moveFrontViewY'
-      , min: 0
-      , max: 2100  
-    , oninput: e => transformObj( frontView, 'pY', e.target.value )      
-    }, parent )
-    , createSelector({
         id: 'scaleViewFront'
       , min: 2
       , max: 200  
@@ -206,19 +286,20 @@ const resizeWindow = () => {
   let w = window.innerWidth
   let h = window.innerHeight
   appWrapper.style.width = w + 'px'
-  appWrapper.style.height = h + 'px'  
+  appWrapper.style.height = h + 15 + 'px'  
 
   if ( w/h > 2.3 ) { 
     uiWrapper.style.flexDirection = 'row'      
   }else{
     uiWrapper.style.flexDirection = 'column'     
   } 
+
   if ( w/h > 1.7 ) { 
-    wSvg = (h-20)*1.415 
-    hSvg = h-20 
+    wSvg = ( h - 20 )*1.415 - 3 
+    hSvg = h - 20 - 3 
     appWrapper.style.flexDirection = 'row'
     uiWrapper.style.height = hSvg + 'px' 
-    uiWrapper.style.width = w-wSvg + 'px' 
+    uiWrapper.style.width = w - wSvg - 3 + 'px' 
     mySVG.attr({ 
         width: wSvg
       , height: hSvg
@@ -229,19 +310,18 @@ const resizeWindow = () => {
     hSvg = (w-20)*0.7 
     appWrapper.style.flexDirection = 'row'
     uiWrapper.style.height = hSvg + 'px' 
-    uiWrapper.style.width = w-wSvg + 'px'     
+    uiWrapper.style.width = w - wSvg - 3 + 'px'     
     mySVG.attr({ 
-        width: wSvg * 0.6
-      , height: hSvg * 0.6
+        width: wSvg * 0.85
+      , height: hSvg * 0.85
     })        
   }      
   if ( w/h < 1 ) {  
-    wSvg = w-20
-    hSvg = (w-20)*0.7      
+    wSvg = w - 20
+    hSvg = (w - 20)*0.7      
     appWrapper.style.flexDirection = 'column'
-    uiWrapper.style.height = 'auto'
-    uiWrapper.style.width = wSvg + 'px'
-    uiWrapper.style.height = h-hSvg + 'px'    
+    uiWrapper.style.width = wSvg - 3  + 'px'
+    uiWrapper.style.height = h - hSvg -3  + 'px'    
     mySVG.attr({ 
         width: wSvg
       , height: hSvg
@@ -254,8 +334,8 @@ const createBlock = ( str, addElems ) => {
   let newElem = document.createElement( 'div' )
   newElem.style.margin = '5px'
   newElem.style.padding = '0px'      
-  newElem.style.color = '#bcb26d'  
-  newElem.style.backgroundColor = '#631c1c'  
+  newElem.style.color = '#766c44'  
+  newElem.style.backgroundColor = '#1c1c1e'  
   newElem.style.borderRadius = '5px' 
   newElem.style.overflow = 'hidden'
   newElem.class = 'uiblock'
@@ -264,7 +344,7 @@ const createBlock = ( str, addElems ) => {
 
   let head = document.createElement( 'div' )
   str ? head.innerHTML = str :  head.innerHTML = ' ' 
-  head.style.backgroundColor = "#a89c4e"
+  head.style.backgroundColor = "#27242d"
   head.style.color = '#5f5d4d' 
   head.style.paddingLeft = '15px'  
   head.style.marginBottom = '5px'    
@@ -416,7 +496,7 @@ const transformTest = changeAttr => {
   testModel.move( testModeldata.pX, testModeldata.pY )   
            .rotate( testModeldata.rotation, testModeldata.pX, testModeldata.pY + testModel.bbox().h )
            .transform( { scaleX: testModeldata.scaleX * testModeldata.flip, cx: testModeldata.pX, cy: testModeldata.pY } ) 
-           .transform( { scaleY: testModeldata.scaleY, cx: testModeldata.pX, cy: testModeldata.pY + testModel.bbox().h }, true )      
+           .transform( { scaleY: testModeldata.scaleY, cx: testModeldata.pX, cy: testModeldata.pY + testModel.bbox().h }, true )    
 }
 
 
