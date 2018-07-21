@@ -2,27 +2,24 @@
 
 'use strict' 
 
-const checkDate = () => {
-  let d = new Date()
-  let t = 'date: ' + d.getDay() + '.' + d.getMonth() + '.' + d.getFullYear()  
-  return t
-} 
-
 /*****************************************************************************/
 
 let mySVG, svgW, svgH,
-text = {
-  org: 'ArtMarbleStudio.ru',
+text = null,
+text_Proto = {
+  org: ' /',
+  pathToLogo: './styles/logo1.png',  
   modelBefore: 'MODEL: ',
-  model: 'Batichinelly',
-  modelId: '#004032',
+  model: ' /',
+  modelId: ' /',
   marbleBefore: 'marble: ',
-  marble: '"White-Antic"',
-  date: checkDate(),
-  clientId: 'cl: ' + Math.floor( Math.random()*100000 ),
+  marble: ' /',
+  date: ' /',
+  clientId: 'cl: /',
   priceBefore: 'Price: ',
-  price: null,
-  priceAfter: ' *'
+  price: ' /',
+  priceAfter: ' *',
+  priceFactor: 1 
 },
 textSVG = {},
 fontStyleShtamp = {
@@ -126,10 +123,12 @@ const drawShtamp = () => {
 
 
 const drawShtampText = () => {
+  textModel ? text = textModel : text = text_Proto 
   textSVG.org = mySVG.text( ( add ) => { add.tspan( text.org ) } )
     .font( fontStyleShtamp ).move( 2010, 1905 ) 
   textSVG.model = mySVG.text( ( add ) => { add.tspan( text.modelBefore + text.model + text.modelId ) } )
     .font( fontStyleShtamp ).move( 2010, 1955 )
+  text.date = checkDate()   
   textSVG.date = mySVG.text( ( add ) => { add.tspan( text.date ) } )
     .font( fontStyleShtamp ).move( 2600, 1955 )  
   textSVG.client = mySVG.text( ( add ) => { add.tspan( text.clientId ) } )
@@ -138,9 +137,16 @@ const drawShtampText = () => {
     .font( fontStyleShtamp ).move( 2010, 2000 )   
   textSVG.price = mySVG.text( ( add ) => { add.tspan( text.priceBefore + text.price + text.priceAfter ) } )
     .font( fontStyleShtamp ).move( 250, 1950 )     
-  var image = mySVG.image( './styles/logo.png', 150, 125 )
+  var image = mySVG.image( text.pathToLogo, 150, 125 )
   image.move( 1830, 1920 )
 }
+
+
+const checkDate = () => {
+  let d = new Date()
+  let t = 'date: ' + d.getDay() + '.' + d.getMonth() + '.' + d.getFullYear()  
+  return t
+} 
 
 
 /*****************************************************************************/
@@ -481,7 +487,17 @@ const drawUiElems = () => {
         id: 'Download'
       , onclick: e => downloadDrawing()          
     }, parent )
-  })         
+  }) 
+  createBlock( 'Models', ( parent ) => {  
+    createLink({
+        id: 'Brattechelino'
+      , path: 'index.html'          
+    }, parent ),                 
+    createLink({
+        id: 'Casper'
+      , path: 'fireplace2.html'   
+    }, parent )
+  })        
 }
 
 
@@ -501,13 +517,11 @@ const resizeWindow = () => {
   let h = window.innerHeight
   appWrapper.style.width = w + 'px'
   appWrapper.style.height = h + 15 + 'px'  
-
   if ( w/h > 2.3 ) { 
     uiWrapper.style.flexDirection = 'row'      
-  }else{
+  } else {
     uiWrapper.style.flexDirection = 'column'     
   } 
-
   if ( w/h > 1.7 ) { 
     svgW = ( h - 20 )*1.415 - 3 
     svgH = h - 20 - 3 
@@ -641,6 +655,14 @@ const createButton = ( props, parent ) => {
 }
 
 
+const createLink = ( props, parent ) => {
+   let newElem = document.createElement( 'p' )
+   newElem.innerHTML = '<a href="' + props.path + '"> ' + props.id + '</a>'
+   parent.appendChild( newElem ) 
+   return newElem    
+}
+
+
 /*****************************************************************************/
 
 const calckPrice = () => {
@@ -648,7 +670,7 @@ const calckPrice = () => {
   if ( ! d.fH  ) return 
   if ( ! d.fD  ) return
   
-  let w =  Math.floor( (+d.fW.realValue) * 45 * (+d.fH.realValue)/270 * ((+d.fD.realValue) * 0.0018 + 1.2) )
+  let w =  Math.floor( (+d.fW.realValue) * 45 * (+d.fH.realValue)/270 * ((+d.fD.realValue) * 0.0018 + 1.2) * text.priceFactor )
   
   let t = w
   t = formatNumber( t )
