@@ -186,7 +186,7 @@ const drawFireplace = () => {
   let panelDef = SVG.select( '#panel' )
   fL.panel.model = leftView.model.use( panelDef.members[ 0 ] ) 
   fL.panel.props = Object.assign( {}, proto_Props )      
-  transformObj( fL.panel, 'pointScale', 'rightCenter' )
+  transformObj( fL.panel, 'pointScale', 'panelRightCenter' )
   transformObj( fL.panel, 'outlineX', -fL.panel.model.bbox().w )    
 }
 
@@ -195,54 +195,14 @@ const drawFlame = () => {
   flame.props = Object.assign( {}, proto_Props ) 
   flame.model.attr( styleShtamp )
   flame.model.addClass( 'cls-1')
-  transformElem( flame, 'pointScale', 'centerBottom' )  
-  transformElem( flame, 'pX', axisX - 350 )
-  transformElem( flame, 'pY', frontView.model.bbox().y + frontView.model.bbox().h  )  
-  transformElem( flame, 'pY', frontView.model.bbox().y2 - 240 )  
+  transformObj( flame, 'pointScale', 'flameCenterBottom' )  
+  transformObj( flame, 'pX', axisX - 350 )
+  transformObj( flame, 'pY', frontView.model.bbox().y + frontView.model.bbox().h  )  
+  transformObj( flame, 'pY', frontView.model.bbox().y2 - 240 )  
 }
 
 
 /*****************************************************************************/
-
-const transformElem = ( obj, prop, val ) => {
-  let m = obj.model
-    , p = obj.props
-    , pScaleX
-    , pScaleY
-    
-  if ( p.pointScale == "center" ) { 
-    pScaleX = m.bbox().cx
-    pScaleY = m.bbox().cy  
-  } 
-  if ( p.pointScale == "leftBottom" ) { 
-    pScaleX = p.pX
-    pScaleY = p.pY
-  }
-  if ( p.pointScale == "centerBottom" ) {  
-    pScaleX = m.bbox().cx 
-    pScaleY = p.pY + m.bbox().h + p.outlineY
-  }
-  if ( p.pointScale == "rightCenter" ) { 
-    pScaleX = 0
-    pScaleY = p.pY + m.bbox().h + p.outlineY
-  }   
-
-  m.transform( { scaleY: 1, cx: pScaleX, cy: pScaleY } )
-   .transform( { scaleX: 1*p.flip, cx: pScaleX, cy: pScaleY }, true )
-   .rotate( 0, p.pX, p.pY + m.bbox().h )  
-   .move( 0, 0 )  
-  
-  if ( typeof val == 'string' ) 
-    eval( 'obj.props.' + prop + ' = ' + '"' + val + '"' ) 
-  if ( typeof val == 'number' ) 
-    eval( 'obj.props.' + prop + ' = ' + val ) 
-
-  m.move( p.pX + p.outlineX, p.pY  )   
-   .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
-   .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX, cy: pScaleY } ) 
-   .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY }, true ) 
-}
-
 
 const transformObj = ( obj, prop, val ) => {
   let m = obj.model
@@ -262,11 +222,19 @@ const transformObj = ( obj, prop, val ) => {
     pScaleX = m.bbox().cx + p.outlineX
     pScaleY = m.bbox().h
   }  
+  if ( p.pointScale == "flameCenterBottom" ) {  
+    pScaleX = m.bbox().cx + p.outlineX 
+    pScaleY = p.pY + m.bbox().h
+  }   
   if ( p.pointScale == "rightCenter" ) { 
     pScaleX = m.bbox().w
     pScaleY = p.pY + m.bbox().h + p.outlineY
-  }     
-
+  }  
+  if ( p.pointScale == "panelRightCenter" ) { 
+    pScaleX = 0
+    pScaleY = p.pY + m.bbox().h + p.outlineY
+  }
+  
   m.transform( { scaleY: 1, cx: pScaleX, cy: pScaleY } )
    .transform( { scaleX: 1*p.flip, cx: pScaleX, cy: pScaleY }, true )
    .rotate( 0, p.pX, p.pY + m.bbox().h )  
@@ -277,10 +245,18 @@ const transformObj = ( obj, prop, val ) => {
   if ( typeof val == 'number' ) 
     eval( 'obj.props.' + prop + ' = ' + val ) 
 
+  if( p.pointScale == 'panelRightCenter') {
+    m.move( p.pX + p.outlineX, p.pY  )   
+    .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
+    .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX, cy: pScaleY } ) 
+    .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY }, true ) 
+    return
+  } 
+
   m.move( p.pX + p.outlineX, p.pY )   
    .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
-   .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX + p.outlineX, cy: pScaleY } ) 
-   .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY }, true ) 
+   .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX + p.outlineX, cy: pScaleY + p.outlineY } ) 
+   .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY + p.outlineY }, true ) 
 }
 
 
@@ -416,7 +392,7 @@ const drawUiElems = () => {
       , max: 200
       , value: 100  
       , oninput: e => { 
-          transformElem( flame, 'scaleX', e.target.value/100 )
+          transformObj( flame, 'scaleX', e.target.value/100 )
           d.flameW.reDraw( flame )
         }       
     }, parent )
@@ -427,7 +403,7 @@ const drawUiElems = () => {
       , value: 100
       , oninput: e => { 
           flame.props.scaleYsaved = e.target.value/100 
-          transformElem( flame, 'scaleY', e.target.value/100 )
+          transformObj( flame, 'scaleY', e.target.value/100 )
           d.flameH.reDraw( flame )
         }         
     }, parent )
@@ -437,9 +413,9 @@ const drawUiElems = () => {
       , max: 200
       , value: 50
       , oninput: e => { 
-          transformElem( flame, 'scaleY', 1 )
-          transformElem( flame, 'pY', e.target.value*(-1) + frontView.model.bbox().y2 - 240 )
-          transformElem( flame, 'scaleY', flame.props.scaleYsaved )
+          transformObj( flame, 'scaleY', 1 )
+          transformObj( flame, 'pY', e.target.value*(-1) + frontView.model.bbox().y2 - 240 )
+          transformObj( flame, 'scaleY', flame.props.scaleYsaved )
           d.flameL.reDraw( flame )
           d.flameH.reDraw( flame )
         }
@@ -495,7 +471,7 @@ const drawUiElems = () => {
       , max: 140
       , value: 70    
       , oninput: e => { 
-          transformElem( fL.panel, 'scaleX', e.target.value/100 )
+          transformObj( fL.panel, 'scaleX', e.target.value/100 )
           d.fD.reDraw( leftView )
         }               
     }, parent )
