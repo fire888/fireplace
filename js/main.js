@@ -1,41 +1,72 @@
 
 
-let mySVG, 
+'use strict' 
+
+const checkDate = () => {
+  let d = new Date()
+  let t = 'date: ' + d.getDay() + '.' + d.getMonth() + '.' + d.getFullYear()  
+  return t
+} 
+
+/*****************************************************************************/
+
+let mySVG, svgW, svgH,
+text = {
+  org: 'ArtMarbleStudio.ru',
+  modelBefore: 'MODEL: ',
+  model: 'Batichinelly',
+  modelId: '#004032',
+  marbleBefore: 'marble: ',
+  marble: '"White-Antic"',
+  date: checkDate(),
+  clientId: 'cl: ' + Math.floor( Math.random()*100000 ),
+  priceBefore: 'Price: ',
+  price: null,
+  priceAfter: ' *'
+},
+textSVG = {},
+fontStyleShtamp = {
+  family: 'roboto',
+  size: 30,
+  anchor: 'left',
+  leading: '1.5em',
+  fill: '#737373'
+},
+styleShtamp = {      
+  fill: 'none',
+  'stroke-width': 1,
+  'vector-effect': 'non-scaling-stroke'
+},
 frontView = {
-  model: null,
-  props: null
+  model: null, props: null
 },
 leftView = {
-  model: null,
-  props: null
+  model: null, props: null
 }, 
 f = {  
   frontR: {
-    model: null,
-    props: null 
+    model: null, props: null 
   },
   frontL: {
-    model: null,
-    props: null 
+    model: null, props: null 
   },       
   legR: { 
-    model: null,
-    props: null 
+    model: null, props: null 
   },
   legL: { 
-    model: null,
-    props: null, 
+    model: null, props: null, 
   }      
 },
 fL = {
   legR: {
-    model: null,
-    props: null 
+    model: null, props: null 
   },    
   panel: { 
-    model: null,
-    props: null, 
+    model: null, props: null, 
   }    
+},
+flame = {
+  model: null, props: null
 },
 proto_Props = {
   flip:         1,
@@ -50,15 +81,8 @@ proto_Props = {
   outlineX:     0,
   outlineY:     0
 },
-flame = {
-  model: null,
-  props: null
-},
-axisX = 1200,
-floor = 450,
-svgW, svgH,
-appWrapper,  
-uiWrapper   
+axisX = 1200, axisX2 = 2600, floor = 450,
+appWrapper, uiWrapper   
 
 
 /*****************************************************************************/
@@ -67,11 +91,13 @@ SVG.on( document, 'DOMContentLoaded', () => {
   prepearWindow() 
   initSvg() 
   drawShtamp()
-  drawFlame()       
+  drawShtampText()        
   drawFireplace()
+  drawFlame()   
   drawDimentions()
   drawUiElems()
   resizeWindow()
+  calckPrice()
 })
 
 
@@ -88,58 +114,36 @@ const initSvg = () => {
 /*****************************************************************************/
 
 const drawShtamp = () => { 
-  let polyline = mySVG.polygon( '200,50    2920,50   2920,2050   200,2050')
-   .attr({ 
-      fill: 'none'
-    , 'stroke-width': 1
-    , 'vector-effect': 'non-scaling-stroke'
-  })
-  polyline.addClass( 'cls-1')
+  let polylineShtamp = mySVG.polygon( '200,50    2920,50   2920,2050   200,2050')
+    .attr( styleShtamp ).addClass( 'cls-1')
   let polylineframe = mySVG.polygon( '2,2    2968,2   2968,2098   2,2098')
-   .attr({ 
-      fill: 'none'
-    , 'stroke-width': 1
-    , 'vector-effect': 'non-scaling-stroke'
-  })  
+    .attr( styleShtamp ).addClass( 'cls-1')
   polylineframe.addClass( 'cls-1')
-  let r = mySVG.polygon( '2920,1930  1800,1930  1800,2050  2000,2050 2000,1930  ' ) 
-    .attr({ 
-      fill: 'none'
-    , 'stroke-width': 1
-    , 'vector-effect': 'non-scaling-stroke'
-  })
+  let r = mySVG.polygon( '2920,1900  1800,1900  1800,2050  2000,2050 2000,1900  ' ) 
+    .attr( styleShtamp ).addClass( 'cls-1')
   r.addClass( 'cls-1')
-  let text = mySVG.text(function(add) {
-    add.tspan('ArtMarbleStudio.ru ').newLine()
-    add.tspan('MODEL: ').newLine()
-    add.tspan(' Brattechinelly.  #0012x65')
-  })
-  text.font({
-    family:   'roboto'
-  , size:     30
-  , anchor:   'left'
-  , leading:  '1.5em'
-  , fill: '#737373'
-  })
-  text.move( 2010,1940 ) 
-
-  now = new Date();
-  let text1 = mySVG.text(function(add) {
-    add.tspan(  now.getDay() + '.' + now.getMonth() +'.'+ now.getFullYear() ).newLine() 
-    add.tspan('c: ' + Math.floor( Math.random()*1000000 )).newLine()
-  })
-  text1.font({
-    family:   'roboto'
-  , size:     30
-  , anchor:   'left'
-  , leading:  '1.5em'
-  , fill: '#737373'
-  })
-  text1.move( 2700,1940 ) 
-  var image = mySVG.image('./styles/logo.png', 150, 125)
-  image.move( 1830,1920 )
 }
 
+
+const drawShtampText = () => {
+  textSVG.org = mySVG.text( ( add ) => { add.tspan( text.org ) } )
+    .font( fontStyleShtamp ).move( 2010, 1905 ) 
+  textSVG.model = mySVG.text( ( add ) => { add.tspan( text.modelBefore + text.model + text.modelId ) } )
+    .font( fontStyleShtamp ).move( 2010, 1955 )
+  textSVG.date = mySVG.text( ( add ) => { add.tspan( text.date ) } )
+    .font( fontStyleShtamp ).move( 2600, 1955 )  
+  textSVG.client = mySVG.text( ( add ) => { add.tspan( text.clientId ) } )
+    .font( fontStyleShtamp ).move( 2600, 1905 )
+  textSVG.marble = mySVG.text( ( add ) => { add.tspan( text.marbleBefore + text.marble ) } )
+    .font( fontStyleShtamp ).move( 2010, 2000 )   
+  textSVG.price = mySVG.text( ( add ) => { add.tspan( text.priceBefore + text.price + text.priceAfter ) } )
+    .font( fontStyleShtamp ).move( 250, 1950 )     
+  var image = mySVG.image( './styles/logo.png', 150, 125 )
+  image.move( 1830, 1920 )
+}
+
+
+/*****************************************************************************/
 
 const drawFireplace = () => {
   frontView.model = mySVG.group()
@@ -189,14 +193,12 @@ const drawFireplace = () => {
 const drawFlame = () => {
   flame.model = mySVG.rect(700, 550)
   flame.props = Object.assign( {}, proto_Props ) 
-  flame.model.attr({ 
-    'stroke-width': 1,
-    'vector-effect': 'non-scaling-stroke'
-  })
+  flame.model.attr( styleShtamp )
   flame.model.addClass( 'cls-1')
-  transformObj( flame, 'pointScale', 'centerBottom' )  
-  transformObj( flame, 'pX', axisX - 350 )
-  transformObj( flame, 'pY', 800)  
+  transformElem( flame, 'pointScale', 'centerBottom' )  
+  transformElem( flame, 'pX', axisX - 350 )
+  transformElem( flame, 'pY', frontView.model.bbox().y + frontView.model.bbox().h  )  
+  transformElem( flame, 'pY', frontView.model.bbox().y2 - 240 )  
 }
 
 
@@ -216,12 +218,11 @@ const transformElem = ( obj, prop, val ) => {
     pScaleX = p.pX
     pScaleY = p.pY
   }
-  if ( p.pointScale == "centerBottom" ) { 
-    pScaleX = m.bbox().cx
+  if ( p.pointScale == "centerBottom" ) {  
+    pScaleX = m.bbox().cx 
     pScaleY = p.pY + m.bbox().h + p.outlineY
   }
   if ( p.pointScale == "rightCenter" ) { 
-
     pScaleX = 0
     pScaleY = p.pY + m.bbox().h + p.outlineY
   }   
@@ -236,7 +237,7 @@ const transformElem = ( obj, prop, val ) => {
   if ( typeof val == 'number' ) 
     eval( 'obj.props.' + prop + ' = ' + val ) 
 
-  m.move( p.pX + p.outlineX, p.pY + p.outlineY )   
+  m.move( p.pX + p.outlineX, p.pY  )   
    .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
    .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX, cy: pScaleY } ) 
    .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY }, true ) 
@@ -257,7 +258,7 @@ const transformObj = ( obj, prop, val ) => {
     pScaleX = p.pX
     pScaleY = p.pY
   }
-  if ( p.pointScale == "centerBottom" ) { 
+  if ( p.pointScale == "centerBottom" ) {
     pScaleX = m.bbox().cx + p.outlineX
     pScaleY = m.bbox().h
   }  
@@ -276,7 +277,7 @@ const transformObj = ( obj, prop, val ) => {
   if ( typeof val == 'number' ) 
     eval( 'obj.props.' + prop + ' = ' + val ) 
 
-  m.move( p.pX + p.outlineX, p.pY + p.outlineY )   
+  m.move( p.pX + p.outlineX, p.pY )   
    .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
    .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX + p.outlineX, cy: pScaleY } ) 
    .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY }, true ) 
@@ -285,142 +286,123 @@ const transformObj = ( obj, prop, val ) => {
 
 /*****************************************************************************/
 
-let d = {
-  flameH: null,
-  flameW: null,
-  flameL: null,
-  fH: null,
-  fW: null,
-  fD: null
-}
-
-d.flameW =  {
-  drawLine: ( v ) => {
-    let startX = v.model.bbox().cx - v.model.bbox().w/2*v.props.scaleX 
-    let endX = v.model.bbox().cx + v.model.bbox().w/2*v.props.scaleX     
-    d.flameW.mainLine = mySVG.line( startX, axisX + 350,  endX, axisX + 350).stroke({ width: 1 })
-    d.flameW.mainLine.addClass( 'cls-1')
-    d.flameW.mainLine.marker('start', 15, 15, function(add) {
-      add.circle(15).fill('#737373')
-    })
-    d.flameW.mainLine.marker('end', 15, 15, function(add) {
-      add.circle(15).fill('#737373')
-    })
-  },
-  redrawLine: ( v ) => { 
-    d.flameW.mainLine.remove()
-    d.flameW.drawLine( v )  
-  }
-}
-
-
-d.flameL =  {
-  drawLine: ( v ) => {
-    let s = floor + frontView.model.bbox().h 
-    let e = v.model.bbox().y + v.model.bbox().h + v.props.scaleY 
-    d.flameL.mainLine = mySVG.line( axisX,  s,  axisX, e ).stroke({ width: 1 })
-    d.flameL.mainLine.addClass( 'cls-1')
-    d.flameL.mainLine.marker('start', 15, 15, function(add) {
-      add.circle(15).fill('#737373')
-    })
-    d.flameL.mainLine.marker('end', 15, 15, function(add) {
-      add.circle(15).fill('#737373')
-    })
-  },
-  redrawLine: ( v ) => { 
-    d.flameL.mainLine.remove()
-    d.flameL.drawLine( v )  
-  }
-}
-
-
-d.flameH =  {
-  drawLine: ( v ) => {  
-     let p1 = v.model.bbox().y2 - v.model.bbox().h*v.props.scaleY
-     let p2 = v.model.bbox().y2 
-     d.flameH.mainLine = mySVG.line( axisX,  p1,  axisX, p2 ).stroke({ width: 1 })
-     d.flameH.mainLine.addClass( 'cls-1')
-     d.flameH.mainLine.marker('start', 15, 15, function(add) {
-        add.circle(15).fill('#737373')
-     })
-     d.flameH.mainLine.marker('end', 15, 15, function(add) {
-       add.circle(15).fill('#737373')
-    })
-  },
-  redrawLine: ( v ) => { 
-    d.flameH.mainLine.remove()
-    d.flameH.drawLine( v )  
-  }
-}
-
-
-d.fH =  {
-  drawLine: ( v ) => {  
-     let p1 = floor + v.model.bbox().h 
-     let p2 = floor + v.model.bbox().h - v.model.bbox().h * v.props.scaleY 
-     d.fH.mainLine = mySVG.line( axisX + 1000, p2, axisX + 1000, p1 ).stroke({ width: 1 })
-     d.fH.mainLine.addClass( 'cls-1')
-     d.fH.mainLine.marker('start', 15, 15, function(add) {
-        add.circle(15).fill('#737373')
-     })
-     d.fH.mainLine.marker('end', 15, 15, function(add) {
-       add.circle(15).fill('#737373')
-    })
-  },
-  redrawLine: ( v ) => { 
-    d.fH.mainLine.remove()
-    d.fH.drawLine( v )  
-  }
-}
-
-
-d.fW =  {
-  drawLine: ( v ) => {  
-     let p1 = axisX + v.model.bbox().x
-     let p2 = axisX + v.model.bbox().x2  
-     d.fW.mainLine = mySVG.line( p1, floor + 1200, p2, floor + 1200 ).stroke({ width: 1 })
-     d.fW.mainLine.addClass( 'cls-1')
-     d.fW.mainLine.marker('start', 15, 15, function(add) {
-        add.circle(15).fill('#737373')
-     })
-     d.fW.mainLine.marker('end', 15, 15, function(add) {
-       add.circle(15).fill('#737373')
-    })
-  },
-  redrawLine: ( v ) => { 
-    d.fW.mainLine.remove()
-    d.fW.drawLine( v )  
-  }
-}
-
-
-d.fD =  {
-  drawLine: ( v ) => {  
-     let p1 = axisX + v.model.bbox().x + 1400
-     let p2 = axisX + v.model.bbox().x2 + 1400  
-     d.fD.mainLine = mySVG.line( p1, floor + 1200, p2, floor + 1200 ).stroke({ width: 1 })
-     d.fD.mainLine.addClass( 'cls-1')
-     d.fD.mainLine.marker('start', 15, 15, function(add) {
-        add.circle(15).fill('#737373')
-     })
-     d.fD.mainLine.marker('end', 15, 15, function(add) {
-       add.circle(15).fill('#737373')
-    })
-  },
-  redrawLine: ( v ) => { 
-    d.fD.mainLine.remove()
-    d.fD.drawLine( v )  
-  }
-}
-
-
 const drawDimentions = () => {
-  d.flameW.drawLine( flame ) 
-  d.flameL.drawLine( flame )
-  d.flameH.drawLine( flame )  
-  d.fH.drawLine( frontView )
-  d.fW.drawLine( frontView ) 
-  d.fD.drawLine( leftView ) 
+  d.flameW = new Dimention( propsDimflameW, flame ) 
+  d.flameL = new Dimention( propsDimflameL, flame ) 
+  d.flameH = new Dimention( propsDimflameH, flame )  
+  d.fH = new Dimention( propsDimFireplaceH, frontView )  
+  d.fW = new Dimention( propsDimFireplaceW, frontView ) 
+  d.fD = new Dimention( propsDimFireplaceD, leftView )    
+}
+
+
+class Dimention{
+  constructor( props, ob ) {
+
+    this.realValue = null
+
+    let { sX = null, sY = null, eX = null, eY = null } = props
+    let orient
+    sY == null ? orient = 'vert' : orient = 'gor'
+    if ( orient == 'gor' ) {
+      this.textOffsetX = -30      
+      this.textOffsetY = -50
+    } 
+    if ( orient == 'vert' ) {
+      this.textOffsetX = 15     
+      this.textOffsetY = -10
+    }       
+    this.sX = sX
+    this.sY = sY
+    this.eX = eX
+    this.eY = eY    
+    this.line = null
+    this.text = null
+    this.textVal = null
+    this.changeMainPoints = props.changePoints
+    this.draw( ob ) 
+  }
+  reDraw( ob ) {
+    this.line.remove()
+    this.text.remove()    
+    this.draw( ob )
+  }  
+  draw( ob ) {
+    this.changeMainPoints( ob, this )
+    this.drawMainLine()
+    this.drawText()
+  } 
+  drawMainLine() {
+    this.line = mySVG.line( this.sX, this.sY, this.eX, this.eY )
+      .stroke( { width: 1 } ).addClass( 'cls-1' )
+      .marker( 'start', 15, 15, ( add ) => {
+           add.circle( 15 ).fill( '#737373' )
+        } )
+      .marker( 'end', 15, 15, ( add ) => {
+          add.circle( 15 ).fill( '#737373' )
+        } )    
+  } 
+  drawText() {
+    this.line.bbox().w == 0 ? this.textVal = this.line.bbox().h : this.textVal = this.line.bbox().w 
+    this.realValue = Math.floor( this.textVal * 1.1/10 ) + '0'
+    this.text = mySVG.text( (add) => {
+      add.tspan( this.realValue ).newLine() 
+    })
+    this.text.font( fontStyleShtamp )
+    this.text.move( this.line.bbox().cx + this.textOffsetX, this.line.bbox().cy + this.textOffsetY )
+    calckPrice()
+  }
+} 
+
+let d = { flameH: null, flameW: null, flameL: null, fH: null, fW: null, fD: null }
+
+let propsDimflameW = {
+  sY: floor + 1100, 
+  eY: floor + 1100,  
+  changePoints: ( v, obToChange ) => {
+    obToChange.sX = v.model.bbox().cx - v.model.bbox().w/2*v.props.scaleX 
+    obToChange.eX = v.model.bbox().cx + v.model.bbox().w/2*v.props.scaleX     
+  }
+},
+propsDimflameL = {
+  sX: axisX, 
+  eX: axisX, 
+  changePoints: ( v, obToChange ) => {
+    obToChange.sY = floor + frontView.model.bbox().h 
+    obToChange.eY = v.model.bbox().y + v.model.bbox().h + v.props.scaleY     
+  }
+},
+propsDimflameH = {
+  sX: axisX, 
+  eX: axisX, 
+  changePoints: ( v, obToChange ) => {
+    obToChange.sY = v.model.bbox().y2 - v.model.bbox().h*v.props.scaleY
+    obToChange.eY = v.model.bbox().y2     
+  }
+},
+propsDimFireplaceH = {
+  sX: axisX + 1000, 
+  eX: axisX + 1000, 
+  changePoints: ( v, obToChange ) => {
+    obToChange.sY = floor + v.model.bbox().h 
+    obToChange.eY = floor + v.model.bbox().h - v.model.bbox().h * v.props.scaleY     
+  }
+},
+propsDimFireplaceW = {
+  sY: floor + 1200,  
+  eY: floor + 1200,  
+  changePoints: ( v, obToChange ) => {
+    obToChange.sX = axisX + v.model.bbox().x
+    obToChange.eX = axisX + v.model.bbox().x2      
+  }
+},
+propsDimFireplaceD = {
+  sY: floor + 1200,  
+  eY: floor + 1200,  
+  changePoints: ( v, obToChange ) => {
+    obToChange.sX = axisX + v.model.bbox().x + 1400
+    obToChange.eX = axisX + v.model.bbox().x2 + 1400       
+  }
 }
 
 
@@ -435,7 +417,7 @@ const drawUiElems = () => {
       , value: 100  
       , oninput: e => { 
           transformElem( flame, 'scaleX', e.target.value/100 )
-          d.flameW.redrawLine( flame )
+          d.flameW.reDraw( flame )
         }       
     }, parent )
     , createSelector({
@@ -446,20 +428,20 @@ const drawUiElems = () => {
       , oninput: e => { 
           flame.props.scaleYsaved = e.target.value/100 
           transformElem( flame, 'scaleY', e.target.value/100 )
-          d.flameH.redrawLine( flame )
+          d.flameH.reDraw( flame )
         }         
     }, parent )
     , createSelector({
         id: 'Level'
-      , min: -70
-      , max: 100
-      , value: 0
+      , min: -100
+      , max: 200
+      , value: 50
       , oninput: e => { 
-          transformObj( flame, 'scaleY', 1 )
-          transformObj( flame, 'pY', +e.target.value*(-1) + 900 )
-          transformObj( flame, 'scaleY', flame.props.scaleYsaved )
-          d.flameL.redrawLine( flame )
-          d.flameH.redrawLine( flame )
+          transformElem( flame, 'scaleY', 1 )
+          transformElem( flame, 'pY', e.target.value*(-1) + frontView.model.bbox().y2 - 240 )
+          transformElem( flame, 'scaleY', flame.props.scaleYsaved )
+          d.flameL.reDraw( flame )
+          d.flameH.reDraw( flame )
         }
       }, parent )    
   })  
@@ -479,7 +461,7 @@ const drawUiElems = () => {
           transformObj( f.frontL, 'scaleX', e.target.value/100 )
           transformObj( f.legL, 'pX', e.target.value/100*f.frontL.model.bbox().w )
           transformObj( f.legL, 'scaleX', f.legR.props.scaleXsaved )  
-          d.fW.redrawLine( frontView )
+          d.fW.reDraw( frontView )
         }          
     }, parent )  
     createSelector({
@@ -492,8 +474,8 @@ const drawUiElems = () => {
           transformObj( f.legR, 'scaleX', e.target.value/100 )
           transformObj( f.legL, 'scaleX', e.target.value/100 )
           transformObj( fL.legR, 'scaleX', e.target.value/100 )  
-          d.fW.redrawLine( frontView )    
-          d.fD.redrawLine( leftView )               
+          d.fW.reDraw( frontView )    
+          d.fD.reDraw( leftView )               
         }          
       }, parent )       
     , createSelector({
@@ -504,7 +486,7 @@ const drawUiElems = () => {
       , oninput: e => { 
           transformObj( frontView, 'scaleY', e.target.value/100 )
           transformObj( leftView, 'scaleY', e.target.value/100 ) 
-          d.fH.redrawLine( frontView )      
+          d.fH.reDraw( frontView )      
         }             
     }, parent )
     , createSelector({
@@ -514,7 +496,7 @@ const drawUiElems = () => {
       , value: 70    
       , oninput: e => { 
           transformElem( fL.panel, 'scaleX', e.target.value/100 )
-          d.fD.redrawLine( leftView )
+          d.fD.reDraw( leftView )
         }               
     }, parent )
   }) 
@@ -685,8 +667,35 @@ const createButton = ( props, parent ) => {
 
 /*****************************************************************************/
 
+const calckPrice = () => {
+  if ( ! d.fW  ) return 
+  if ( ! d.fH  ) return 
+  if ( ! d.fD  ) return
+  
+  let w =  Math.floor( (+d.fW.realValue) * 45 * (+d.fH.realValue)/270 * ((+d.fD.realValue) * 0.0018 + 1.2) )
+  
+  let t = w
+  t = formatNumber( t )
+
+  textSVG.price.remove()
+  textSVG.price = mySVG.text( ( add ) => { add.tspan('Price: ' + t + ' *' ) } )
+  textSVG.price.font( fontStyleShtamp )
+  textSVG.price.move( 300, 1905 )
+}
+
+const formatNumber = ( v ) => {
+  let n = v + ''
+  let s = ''
+  for( let i = n.length - 1; i > -1; i -- ) {  
+    ( i + 1 )%3 == 0 ? s = s + ' ' : s
+    i < 4 ? s += '0' : s = s + n[ n.length - i - 1 ]  
+  }
+  return s 
+}
+
 const downloadDrawing = () => {
   var svg = document.querySelector( "svg" )
+
   var svgData = new XMLSerializer().serializeToString( svg )        
   var can = document.createElement("canvas")
   can.width = svgW
@@ -694,10 +703,10 @@ const downloadDrawing = () => {
   var ctx = can.getContext("2d")
   ctx.fillStyle = "#0f0e11";
   ctx.fillRect( 0, 0, svgW, svgH )
-
+  
   var img = document.createElement( "img" )
   img.setAttribute( "src", "data:image/svg+xml;base64," + btoa(svgData))
-  img.onload = function() {
+  img.onload = () => {
       ctx.drawImage( img, 0, 0, svgW, svgH )
       var a = document.createElement('a')
       document.body.appendChild(a)
@@ -706,3 +715,4 @@ const downloadDrawing = () => {
       a.click();
     };
 }
+
