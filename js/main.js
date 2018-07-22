@@ -14,9 +14,11 @@ let fontStyleShtamp = {
 },
 styleShtamp = {      
   fill: 'none',
-  'stroke-width': 1,
-  'vector-effect': 'non-scaling-stroke'
+  'stroke-width': 1.6,
+  'vector-effect': 'non-scaling-stroke',
+  stroke: '#aaaaaa'
 }
+
 
 
 /*****************************************************************************/
@@ -123,13 +125,11 @@ const initSvg = () => {
 
 const drawShtamp = () => { 
   let polylineShtamp = mySVG.polygon( '200,50    2920,50   2920,2050   200,2050')
-    .attr( styleShtamp ).addClass( 'cls-1')
+    .attr( styleShtamp )
   let polylineframe = mySVG.polygon( '2,2    2968,2   2968,2098   2,2098')
-    .attr( styleShtamp ).addClass( 'cls-1')
-  polylineframe.addClass( 'cls-1')
+    .attr( styleShtamp )
   let bottomTable = mySVG.polygon( '2920,1900  1800,1900  1800,2050  2000,2050 2000,1900  ' ) 
-    .attr( styleShtamp ).addClass( 'cls-1')
-  bottomTable.addClass( 'cls-1')
+    .attr( styleShtamp )
 }
 
 
@@ -209,9 +209,8 @@ const drawFireplace = () => {
 
 const drawFlame = () => {
   flame.model = mySVG.rect(700, 550)
+    .attr( styleShtamp )
   flame.props = Object.assign( {}, objProps_Proto ) 
-  flame.model.attr( styleShtamp )
-  flame.model.addClass( 'cls-1')
   transformObj( flame, 'pointScale', 'flameCenterBottom' )  
   transformObj( flame, 'pX', AXIS_X - 350 )
   transformObj( flame, 'pY', frontView.model.bbox().y + frontView.model.bbox().h  )  
@@ -375,7 +374,7 @@ class Dimention{
   }
   drawMainLine() {
     this.line = mySVG.line( this.sX, this.sY, this.eX, this.eY )
-      .stroke( { width: 1 } ).addClass( 'cls-1' )
+      .addClass( 'cls-1' )
       .marker( 'start', 15, 15, ( add ) => {
            add.circle( 15 ).fill( '#737373' )
         } )
