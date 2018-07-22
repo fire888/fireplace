@@ -53,7 +53,7 @@ f = {
     model: null, props: null 
   },
   legL: { 
-    model: null, props: null, 
+    model: null, props: null
   }      
 },
 fL = {
@@ -61,7 +61,7 @@ fL = {
     model: null, props: null 
   },    
   panel: { 
-    model: null, props: null, 
+    model: null, props: null
   }    
 },
 flame = {
