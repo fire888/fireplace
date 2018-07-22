@@ -1,14 +1,34 @@
 
 
-'use strict' 
+'use strict'
+
 
 /*****************************************************************************/
 
-const A4_WIDTH = 2970, A4_HEIGHT = 2100
+let fontStyleShtamp = {
+  family: 'roboto',
+  size: 30,
+  anchor: 'left',
+  leading: '1.5em',
+  fill: '#737373'
+},
+styleShtamp = {      
+  fill: 'none',
+  'stroke-width': 1,
+  'vector-effect': 'non-scaling-stroke'
+}
+
+
+/*****************************************************************************/
+
+const A4_WIDTH = 2970, A4_HEIGHT = 2100,
+AXIS_X = 1200, AXIS_X2 = 2600, FLOOR_Y = 450
 
 let mySVG, svgW, svgH,
+
+textSVG = {},
 textVals = null,
-text_Proto = {
+textVals_Proto = {
   org: ' /',
   pathToLogo: './styles/logo1.png',  
   modelBefore: 'MODEL: ',
@@ -23,19 +43,8 @@ text_Proto = {
   priceAfter: ' *',
   priceFactor: 1 
 },
-textSVG = {},
-fontStyleShtamp = {
-  family: 'roboto',
-  size: 30,
-  anchor: 'left',
-  leading: '1.5em',
-  fill: '#737373'
-},
-styleShtamp = {      
-  fill: 'none',
-  'stroke-width': 1,
-  'vector-effect': 'non-scaling-stroke'
-},
+
+
 frontView = {
   model: null, props: null
 },
@@ -80,7 +89,7 @@ proto_Props = {
   outlineX:     0,
   outlineY:     0
 },
-axisX = 1200, axisX2 = 2600, floor = 450,
+
 appWrapper, uiWrapper   
 
 
@@ -125,7 +134,7 @@ const drawShtamp = () => {
 
 
 const drawShtampText = () => {
-  textModel ? textVals = textModel : textVals = text_Proto 
+  textModel ? textVals = textModel : textVals = textVals_Proto 
   textSVG.org = mySVG.text( ( add ) => { add.tspan( textVals.org ) } )
     .font( fontStyleShtamp ).move( 2010, 1905 ) 
   textSVG.model = mySVG.text( ( add ) => { add.tspan( textVals.modelBefore + textVals.model + textVals.modelId ) } )
@@ -157,8 +166,8 @@ const drawFireplace = () => {
   frontView.model = mySVG.group()
   frontView.props = Object.assign( {}, proto_Props )  
   transformObj( frontView, 'pointScale', 'centerBottom' )
-  transformObj( frontView, 'pX', axisX )
-  transformObj( frontView, 'pY', floor )
+  transformObj( frontView, 'pX', AXIS_X )
+  transformObj( frontView, 'pY', FLOOR_Y )
 
   let frontDef = SVG.select( '#front' )
   
@@ -184,8 +193,8 @@ const drawFireplace = () => {
   leftView.model = mySVG.group()
   leftView.props = Object.assign( {}, proto_Props )  
   transformObj( leftView, 'pointScale', 'centerBottom' )
-  transformObj( leftView, 'pX', axisX + 1400)
-  transformObj( leftView, 'pY', floor )
+  transformObj( leftView, 'pX', AXIS_X + 1400)
+  transformObj( leftView, 'pY', FLOOR_Y )
   
   fL.legR.model = leftView.model.use( legDef.members[ 0 ] ) 
   fL.legR.props = Object.assign( {}, proto_Props )      
@@ -204,7 +213,7 @@ const drawFlame = () => {
   flame.model.attr( styleShtamp )
   flame.model.addClass( 'cls-1')
   transformObj( flame, 'pointScale', 'flameCenterBottom' )  
-  transformObj( flame, 'pX', axisX - 350 )
+  transformObj( flame, 'pX', AXIS_X - 350 )
   transformObj( flame, 'pY', frontView.model.bbox().y + frontView.model.bbox().h  )  
   transformObj( flame, 'pY', frontView.model.bbox().y2 - 240 )  
 }
@@ -388,51 +397,51 @@ class Dimention{
 
 
 let propsDimflameW = {
-  sY: floor + 1100, 
-  eY: floor + 1100,  
+  sY: FLOOR_Y + 1100, 
+  eY: FLOOR_Y + 1100,  
   changePoints: ( v, obToChange ) => {
     obToChange.sX = v.model.bbox().cx - v.model.bbox().w/2*v.props.scaleX 
     obToChange.eX = v.model.bbox().cx + v.model.bbox().w/2*v.props.scaleX     
   }
 },
 propsDimflameL = {
-  sX: axisX, 
-  eX: axisX, 
+  sX: AXIS_X, 
+  eX: AXIS_X, 
   changePoints: ( v, obToChange ) => {
-    obToChange.sY = floor + frontView.model.bbox().h 
+    obToChange.sY = FLOOR_Y + frontView.model.bbox().h 
     obToChange.eY = v.model.bbox().y + v.model.bbox().h + v.props.scaleY     
   }
 },
 propsDimflameH = {
-  sX: axisX, 
-  eX: axisX, 
+  sX: AXIS_X, 
+  eX: AXIS_X, 
   changePoints: ( v, obToChange ) => {
     obToChange.sY = v.model.bbox().y2 - v.model.bbox().h*v.props.scaleY
     obToChange.eY = v.model.bbox().y2     
   }
 },
 propsDimFireplaceH = {
-  sX: axisX + 1000, 
-  eX: axisX + 1000, 
+  sX: AXIS_X + 1000, 
+  eX: AXIS_X + 1000, 
   changePoints: ( v, obToChange ) => {
-    obToChange.sY = floor + v.model.bbox().h 
-    obToChange.eY = floor + v.model.bbox().h - v.model.bbox().h * v.props.scaleY     
+    obToChange.sY = FLOOR_Y + v.model.bbox().h 
+    obToChange.eY = FLOOR_Y + v.model.bbox().h - v.model.bbox().h * v.props.scaleY     
   }
 },
 propsDimFireplaceW = {
-  sY: floor + 1200,  
-  eY: floor + 1200,  
+  sY: FLOOR_Y + 1200,  
+  eY: FLOOR_Y + 1200,  
   changePoints: ( v, obToChange ) => {
-    obToChange.sX = axisX + v.model.bbox().x
-    obToChange.eX = axisX + v.model.bbox().x2      
+    obToChange.sX = AXIS_X + v.model.bbox().x
+    obToChange.eX = AXIS_X + v.model.bbox().x2      
   }
 },
 propsDimFireplaceD = {
-  sY: floor + 1200,  
-  eY: floor + 1200,  
+  sY: FLOOR_Y + 1200,  
+  eY: FLOOR_Y + 1200,  
   changePoints: ( v, obToChange ) => {
-    obToChange.sX = axisX + v.model.bbox().x + 1400
-    obToChange.eX = axisX + v.model.bbox().x2 + 1400       
+    obToChange.sX = AXIS_X + v.model.bbox().x + 1400
+    obToChange.eX = AXIS_X + v.model.bbox().x2 + 1400       
   }
 }
 
