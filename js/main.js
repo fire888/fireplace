@@ -140,7 +140,7 @@ const drawShtampText = () => {
   textSVG.price = mySVG.text( ( add ) => { add.tspan( textVals.priceBefore + textVals.price + textVals.priceAfter ) } )
     .font( fontStyleShtamp ).move( 250, 1950 )     
   let image = mySVG.image( textVals.pathToLogo, 150, 125 )
-  image.move( 1830, 1920 )
+    .move( 1830, 1920 )
 }
 
 
