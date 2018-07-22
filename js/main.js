@@ -4,8 +4,10 @@
 
 /*****************************************************************************/
 
+const A4_WIDTH = 2970, A4_HEIGHT = 2100
+
 let mySVG, svgW, svgH,
-text = null,
+textVals = null,
 text_Proto = {
   org: ' /',
   pathToLogo: './styles/logo1.png',  
@@ -15,7 +17,7 @@ text_Proto = {
   marbleBefore: 'marble: ',
   marble: ' /',
   date: ' /',
-  clientId: 'cl: /',
+  clientId: ' /',
   priceBefore: 'Price: ',
   price: ' /',
   priceAfter: ' *',
@@ -71,7 +73,7 @@ proto_Props = {
   scaleXsaved:  1, 
   scaleY:       1,
   scaleYsaved:  1, 
-  pointScale:   'leftBottom', // || 'center' || buttomCenter || rightCenter
+  pointScale:   'leftBottom', // || 'center' || buttomCenter || rightCenter || panelRightCenter || flameCenterBottom
   rotation:     0,
   pX:           0,
   pY:           0,
@@ -93,10 +95,12 @@ SVG.on( document, 'DOMContentLoaded', () => {
   drawFlame()   
   drawDimentions()
   drawUiElems()
+  calckPrice()  
   resizeWindow()
-  calckPrice()
 })
 
+
+/*****************************************************************************/
 
 const initSvg = () => {
   mySVG = SVG( 'model' )
@@ -104,11 +108,9 @@ const initSvg = () => {
       id: "mySVG"
     , 'vector-effect' : 'non-scaling-stroke'
   })
-  mySVG.viewbox(0, 0, 2970, 2100)
+  mySVG.viewbox( 0, 0, A4_WIDTH, A4_HEIGHT )
 }
 
-
-/*****************************************************************************/
 
 const drawShtamp = () => { 
   let polylineShtamp = mySVG.polygon( '200,50    2920,50   2920,2050   200,2050')
@@ -116,28 +118,28 @@ const drawShtamp = () => {
   let polylineframe = mySVG.polygon( '2,2    2968,2   2968,2098   2,2098')
     .attr( styleShtamp ).addClass( 'cls-1')
   polylineframe.addClass( 'cls-1')
-  let r = mySVG.polygon( '2920,1900  1800,1900  1800,2050  2000,2050 2000,1900  ' ) 
+  let bottomTable = mySVG.polygon( '2920,1900  1800,1900  1800,2050  2000,2050 2000,1900  ' ) 
     .attr( styleShtamp ).addClass( 'cls-1')
-  r.addClass( 'cls-1')
+  bottomTable.addClass( 'cls-1')
 }
 
 
 const drawShtampText = () => {
-  textModel ? text = textModel : text = text_Proto 
-  textSVG.org = mySVG.text( ( add ) => { add.tspan( text.org ) } )
+  textModel ? textVals = textModel : textVals = text_Proto 
+  textSVG.org = mySVG.text( ( add ) => { add.tspan( textVals.org ) } )
     .font( fontStyleShtamp ).move( 2010, 1905 ) 
-  textSVG.model = mySVG.text( ( add ) => { add.tspan( text.modelBefore + text.model + text.modelId ) } )
+  textSVG.model = mySVG.text( ( add ) => { add.tspan( textVals.modelBefore + textVals.model + textVals.modelId ) } )
     .font( fontStyleShtamp ).move( 2010, 1955 )
-  text.date = checkDate()   
-  textSVG.date = mySVG.text( ( add ) => { add.tspan( text.date ) } )
+  textVals.date = checkDate()   
+  textSVG.date = mySVG.text( ( add ) => { add.tspan( textVals.date ) } )
     .font( fontStyleShtamp ).move( 2600, 1955 )  
-  textSVG.client = mySVG.text( ( add ) => { add.tspan( text.clientId ) } )
+  textSVG.client = mySVG.text( ( add ) => { add.tspan( textVals.clientId ) } )
     .font( fontStyleShtamp ).move( 2600, 1905 )
-  textSVG.marble = mySVG.text( ( add ) => { add.tspan( text.marbleBefore + text.marble ) } )
+  textSVG.marble = mySVG.text( ( add ) => { add.tspan( textVals.marbleBefore + textVals.marble ) } )
     .font( fontStyleShtamp ).move( 2010, 2000 )   
-  textSVG.price = mySVG.text( ( add ) => { add.tspan( text.priceBefore + text.price + text.priceAfter ) } )
+  textSVG.price = mySVG.text( ( add ) => { add.tspan( textVals.priceBefore + textVals.price + textVals.priceAfter ) } )
     .font( fontStyleShtamp ).move( 250, 1950 )     
-  var image = mySVG.image( text.pathToLogo, 150, 125 )
+  var image = mySVG.image( textVals.pathToLogo, 150, 125 )
   image.move( 1830, 1920 )
 }
 
@@ -210,12 +212,60 @@ const drawFlame = () => {
 
 /*****************************************************************************/
 
+const actions = {
+  changeFlameWidth: ( v ) => { 
+    transformObj( flame, 'scaleX', v )
+    d.flameW.reDraw( flame )
+  },
+  changeFlameHeight: ( v ) => { 
+    flame.props.scaleYsaved = v 
+    transformObj( flame, 'scaleY', v )
+    d.flameH.reDraw( flame )
+  },
+  changeFlameLevel: ( v ) => { 
+    transformObj( flame, 'scaleY', 1 )
+    transformObj( flame, 'pY', v*(-1) + frontView.model.bbox().y2 - 240 )
+    transformObj( flame, 'scaleY', flame.props.scaleYsaved )
+    d.flameL.reDraw( flame )
+    d.flameH.reDraw( flame )
+  },
+  changeFrontWidth: ( v ) => {
+    transformObj( f.legR, 'scaleX', 1 )
+    transformObj( f.frontR, 'scaleX', v )
+    transformObj( f.legR, 'pX', v*f.frontR.model.bbox().w )          
+    transformObj( f.legR, 'scaleX', f.legR.props.scaleXsaved )
+
+    transformObj( f.legL, 'scaleX', 1 )          
+    transformObj( f.frontL, 'scaleX', v )
+    transformObj( f.legL, 'pX', v*f.frontL.model.bbox().w )
+    transformObj( f.legL, 'scaleX', f.legR.props.scaleXsaved )  
+    d.fW.reDraw( frontView )
+  },
+  changeLegsWidth: ( v ) => {
+    f.legR.props.scaleXsaved = v        
+    transformObj( f.legR, 'scaleX', v )
+    transformObj( f.legL, 'scaleX', v )
+    transformObj( fL.legR, 'scaleX', v )  
+    d.fW.reDraw( frontView )    
+    d.fD.reDraw( leftView ) 
+  },
+  changeMainHeight: ( v ) => { 
+    transformObj( frontView, 'scaleY', v )
+    transformObj( leftView, 'scaleY', v ) 
+    d.fH.reDraw( frontView )      
+  },  
+  changeMainDepth: ( v ) => { 
+    transformObj( fL.panel, 'scaleX', v )
+    d.fD.reDraw( leftView )
+  }  
+}
+
+
 const transformObj = ( obj, prop, val ) => {
   let m = obj.model
     , p = obj.props
     , pScaleX
     , pScaleY
-    
   if ( p.pointScale == "center" ) { 
     pScaleX = m.bbox().cx
     pScaleY = m.bbox().cy  
@@ -240,17 +290,14 @@ const transformObj = ( obj, prop, val ) => {
     pScaleX = 0
     pScaleY = p.pY + m.bbox().h + p.outlineY
   }
-  
   m.transform( { scaleY: 1, cx: pScaleX, cy: pScaleY } )
    .transform( { scaleX: 1*p.flip, cx: pScaleX, cy: pScaleY }, true )
    .rotate( 0, p.pX, p.pY + m.bbox().h )  
    .move( 0, 0 )  
-  
   if ( typeof val == 'string' ) 
     eval( 'obj.props.' + prop + ' = ' + '"' + val + '"' ) 
   if ( typeof val == 'number' ) 
     eval( 'obj.props.' + prop + ' = ' + val ) 
-
   if( p.pointScale == 'panelRightCenter') {
     m.move( p.pX + p.outlineX, p.pY  )   
     .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
@@ -258,7 +305,6 @@ const transformObj = ( obj, prop, val ) => {
     .transform( { scaleY: p.scaleY, cx: pScaleX, cy: pScaleY }, true ) 
     return
   } 
-
   m.move( p.pX + p.outlineX, p.pY )   
    .rotate( p.rotation, p.pX, p.pY + m.bbox().h )
    .transform( { scaleX: p.scaleX*p.flip, cx: pScaleX + p.outlineX, cy: pScaleY + p.outlineY } ) 
@@ -278,11 +324,12 @@ const drawDimentions = () => {
 }
 
 
+let d = { flameH: null, flameW: null, flameL: null, fH: null, fW: null, fD: null }
+
+
 class Dimention{
   constructor( props, ob ) {
-
     this.realValue = null
-
     let { sX = null, sY = null, eX = null, eY = null } = props
     let orient
     sY == null ? orient = 'vert' : orient = 'gor'
@@ -299,21 +346,24 @@ class Dimention{
     this.eX = eX
     this.eY = eY    
     this.line = null
-    this.text = null
+    this.textSvg = null
     this.textVal = null
     this.changeMainPoints = props.changePoints
     this.draw( ob ) 
   }
   reDraw( ob ) {
-    this.line.remove()
-    this.text.remove()    
+    this.clear()
     this.draw( ob )
   }  
   draw( ob ) {
     this.changeMainPoints( ob, this )
     this.drawMainLine()
     this.drawText()
-  } 
+  }
+  clear() {
+    this.line.remove()
+    this.textSvg.remove()  
+  }
   drawMainLine() {
     this.line = mySVG.line( this.sX, this.sY, this.eX, this.eY )
       .stroke( { width: 1 } ).addClass( 'cls-1' )
@@ -327,16 +377,15 @@ class Dimention{
   drawText() {
     this.line.bbox().w == 0 ? this.textVal = this.line.bbox().h : this.textVal = this.line.bbox().w 
     this.realValue = Math.floor( this.textVal * 1.1/10 ) + '0'
-    this.text = mySVG.text( (add) => {
+    this.textSvg = mySVG.text( (add) => {
       add.tspan( this.realValue ).newLine() 
     })
-    this.text.font( fontStyleShtamp )
-    this.text.move( this.line.bbox().cx + this.textOffsetX, this.line.bbox().cy + this.textOffsetY )
+    this.textSvg.font( fontStyleShtamp )
+    this.textSvg.move( this.line.bbox().cx + this.textOffsetX, this.line.bbox().cy + this.textOffsetY )
     calckPrice()
   }
 } 
 
-let d = { flameH: null, flameW: null, flameL: null, fH: null, fW: null, fD: null }
 
 let propsDimflameW = {
   sY: floor + 1100, 
@@ -393,113 +442,221 @@ propsDimFireplaceD = {
 const drawUiElems = () => {
   createBlock( 'Flame', ( parent ) => {
     createSelector({
-        id: 'Width'
-      , min: 2
-      , max: 200
-      , value: 100  
-      , oninput: e => { 
-          transformObj( flame, 'scaleX', e.target.value/100 )
-          d.flameW.reDraw( flame )
-        }       
-    }, parent )
+          id: 'Width'
+        , min: 2
+        , max: 200
+        , value: 100  
+        , oninput: e => actions.changeFlameWidth( e.target.value/100 )    
+      }, parent )
     , createSelector({
-        id: 'Height'
-      , min: 2
-      , max: 160  
-      , value: 100
-      , oninput: e => { 
-          flame.props.scaleYsaved = e.target.value/100 
-          transformObj( flame, 'scaleY', e.target.value/100 )
-          d.flameH.reDraw( flame )
-        }         
-    }, parent )
+          id: 'Height'
+        , min: 2
+        , max: 160  
+        , value: 100
+        , oninput: e => actions.changeFlameHeight( e.target.value/100 )         
+      }, parent )
     , createSelector({
-        id: 'Level'
-      , min: -100
-      , max: 200
-      , value: 50
-      , oninput: e => { 
-          transformObj( flame, 'scaleY', 1 )
-          transformObj( flame, 'pY', e.target.value*(-1) + frontView.model.bbox().y2 - 240 )
-          transformObj( flame, 'scaleY', flame.props.scaleYsaved )
-          d.flameL.reDraw( flame )
-          d.flameH.reDraw( flame )
-        }
+          id: 'Level'
+        , min: -100
+        , max: 200
+        , value: 50
+        , oninput: e => actions.changeFlameLevel( e.target.value )
       }, parent )    
   })  
   createBlock( 'Fireplace', ( parent ) => { 
-    createSelector({
-        id: 'MainWidth'
-      , min: 2
-      , max: 180
-      , value: 100
-      , oninput: e => {
-          transformObj( f.legR, 'scaleX', 1 )
-          transformObj( f.frontR, 'scaleX', e.target.value/100 )
-          transformObj( f.legR, 'pX', e.target.value/100*f.frontR.model.bbox().w )          
-          transformObj( f.legR, 'scaleX', f.legR.props.scaleXsaved )
-
-          transformObj( f.legL, 'scaleX', 1 )          
-          transformObj( f.frontL, 'scaleX', e.target.value/100 )
-          transformObj( f.legL, 'pX', e.target.value/100*f.frontL.model.bbox().w )
-          transformObj( f.legL, 'scaleX', f.legR.props.scaleXsaved )  
-          d.fW.reDraw( frontView )
-        }          
-    }, parent )  
-    createSelector({
-        id: 'LegsWidth'
-      , min: 50
-      , max: 150
-      , value: 100
-      , oninput: e => {
-          f.legR.props.scaleXsaved = e.target.value/100        
-          transformObj( f.legR, 'scaleX', e.target.value/100 )
-          transformObj( f.legL, 'scaleX', e.target.value/100 )
-          transformObj( fL.legR, 'scaleX', e.target.value/100 )  
-          d.fW.reDraw( frontView )    
-          d.fD.reDraw( leftView )               
-        }          
+      createSelector({
+          id: 'MainWidth'
+        , min: 2
+        , max: 180
+        , value: 100
+        , oninput: e => actions.changeFrontWidth( e.target.value/100 )          
+      }, parent )  
+    , createSelector({
+          id: 'LegsWidth'
+        , min: 50
+        , max: 150
+        , value: 100
+        , oninput: e => actions.changeLegsWidth( e.target.value/100 )          
       }, parent )       
     , createSelector({
-        id: 'Height'
-      , min: 2
-      , max: 135
-      , value: 100    
-      , oninput: e => { 
-          transformObj( frontView, 'scaleY', e.target.value/100 )
-          transformObj( leftView, 'scaleY', e.target.value/100 ) 
-          d.fH.reDraw( frontView )      
-        }             
-    }, parent )
+          id: 'Height'
+        , min: 2
+        , max: 135
+        , value: 100    
+        , oninput: e => actions.changeMainHeight( e.target.value/100 )           
+      }, parent )
     , createSelector({
-        id: 'Depth'
-      , min: 2
-      , max: 140
-      , value: 70    
-      , oninput: e => { 
-          transformObj( fL.panel, 'scaleX', e.target.value/100 )
-          d.fD.reDraw( leftView )
-        }               
-    }, parent )
+          id: 'Depth'
+        , min: 2
+        , max: 140
+        , value: 70    
+        , oninput: e => actions.changeMainDepth( e.target.value/100 )               
+      }, parent )
   }) 
   createBlock( 'Drawing', ( parent ) => {               
-    createButton({
-        id: 'Download'
-      , onclick: e => downloadDrawing()          
-    }, parent )
+      createButton({
+          id: 'Download'
+        , onclick: e => downloadDrawing()          
+      }, parent )
   }) 
   createBlock( 'Models', ( parent ) => {  
-    createLink({
-        id: 'Brattechelino'
-      , path: 'index.html'          
-    }, parent ),                 
-    createLink({
-        id: 'Casper'
-      , path: 'fireplace2.html'   
-    }, parent )
+      createLink({
+          id: 'Brattechelino'
+        , path: 'index.html'          
+      }, parent )
+    , createLink({
+          id: 'Casper'
+        , path: 'fireplace2.html'   
+      }, parent )
   })        
 }
 
+
+const createBlock = ( str, addElems ) => {
+  let newElem = document.createElement( 'div' )
+  newElem.style.margin = '5px'
+  newElem.style.padding = '0px'      
+  newElem.style.color = '#766c44'  
+  newElem.style.backgroundColor = '#1c1c1e'  
+  newElem.style.borderRadius = '5px' 
+  newElem.style.overflow = 'hidden'
+  newElem.class = 'uiblock'
+  newElem.style.flex = '1 0 auto'
+  uiWrapper.appendChild( newElem ) 
+
+  let head = document.createElement( 'div' )
+  str ? head.innerHTML = str :  head.innerHTML = ' ' 
+  head.style.backgroundColor = "#27242d"
+  head.style.color = '#5f5d4d' 
+  head.style.paddingLeft = '15px'  
+  head.style.marginBottom = '15px'    
+  newElem.appendChild( head )
+  
+  addElems( newElem )      
+}
+
+
+const createSelector = ( props, parent ) => {
+  let {
+      type = 'range'
+    , min = -50
+    , max = 50
+    , value = 0
+    , id = 'scaleFront'
+    , zIndex = '100'
+    , position = 'relative'
+    , display = 'block'
+    , margin = '0px'
+    , width = '70%'  
+    , onkeydown = 'return false'
+    , oninput = () => {}  	  
+  } = props 
+  let inpName = document.createElement( 'p' )
+  inpName.innerHTML = id
+  inpName.style.margin = '0px'
+  inpName.style.marginLeft = '15px'
+  parent.appendChild( inpName )   
+  let newElem = document.createElement( 'input' )
+  newElem.type = type
+  newElem.id = id
+  newElem.style.zIndex = zIndex
+  newElem.style.position = position
+  newElem.style.display = display
+  newElem.style.width = width
+  newElem.min = min
+  newElem.max = max  
+  newElem.value = value
+  newElem.onkeydown = onkeydown
+  newElem.oninput = oninput	 
+  parent.appendChild( newElem ) 
+  return newElem
+}
+
+
+const createButton = ( props, parent ) => {
+  let {
+      id = 'flip'
+    , zIndex = '100'
+    , position = 'relative'
+    , display = 'block'
+    , margin= '10px'
+    , width = '100px'
+    , value = null
+    , onkeydown = null
+    , oninput = null
+    , onclick = () => {}  
+  } = props
+  let newElem = document.createElement( 'button' )
+  newElem.id = id
+  newElem.innerHTML = id
+  newElem.style.zIndex = zIndex
+  newElem.style.position = position
+  newElem.style.display = display
+  newElem.style.margin= margin
+  newElem.style.width = width
+  newElem.value = value
+  newElem.onkeydown = onkeydown
+  newElem.oninput = oninput
+  newElem.onclick = onclick
+  parent.appendChild( newElem ) 
+  return newElem
+}
+
+
+const createLink = ( props, parent ) => {
+   let newElem = document.createElement( 'p' )
+   newElem.innerHTML = '<a href="' + props.path + '"> ' + props.id + '</a>'
+   parent.appendChild( newElem ) 
+   return newElem    
+}
+
+
+/*****************************************************************************/
+
+const calckPrice = () => {
+  if ( ! d.fW || ! d.fH || ! d.fD ) return 
+  let price =  Math.floor( (+d.fW.realValue) * 45 * (+d.fH.realValue)/270 * ((+d.fD.realValue) * 0.0018 + 1.2) * textVals.priceFactor )
+  price = formatNumber( price )
+  textSVG.price.remove()
+  textSVG.price = mySVG.text( ( add ) => { add.tspan('Price: ' + price + ' *' ) } )
+  textSVG.price.font( fontStyleShtamp )
+  textSVG.price.move( 300, 1905 )
+}
+
+const formatNumber = ( v ) => {
+  v = v + ''
+  let stroke = ''
+  for( let i = v.length - 1; i > -1; i -- ) {  
+    ( i + 1 )%3 == 0 ? stroke = stroke + ' ' : stroke
+    i < 4 ? stroke += '0' : stroke = stroke + v[ v.length - i - 1 ]  
+  }
+  return stroke 
+}
+
+const downloadDrawing = () => {
+  let svg = document.querySelector( "svg" )
+  let svgData = new XMLSerializer().serializeToString( svg )        
+  let can = document.createElement("canvas")
+  can.width = svgW
+  can.height = svgH
+  let ctx = can.getContext("2d")
+  ctx.fillStyle = "#0f0e11";
+  ctx.fillRect( 0, 0, svgW, svgH )
+  
+  let img = document.createElement( "img" )
+  img.setAttribute( "src", "data:image/svg+xml;base64," + btoa(svgData))
+  img.onload = () => {
+      ctx.drawImage( img, 0, 0, svgW, svgH )
+      var a = document.createElement('a')
+      document.body.appendChild(a)
+      a.href = can.toDataURL('image/png')
+      a.download = 'drawing.jpg'
+      a.click()
+    };
+}
+
+
+/*******************************************************************/
 
 const prepearWindow = () => {
   appWrapper = document.getElementById( 'app' )
@@ -555,162 +712,6 @@ const resizeWindow = () => {
     mySVG.attr({ 
         width: svgW
       , height: svgH
-  }) 
+    }) 
   }     
-} 
-
-
-const createBlock = ( str, addElems ) => {
-  let newElem = document.createElement( 'div' )
-  newElem.style.margin = '5px'
-  newElem.style.padding = '0px'      
-  newElem.style.color = '#766c44'  
-  newElem.style.backgroundColor = '#1c1c1e'  
-  newElem.style.borderRadius = '5px' 
-  newElem.style.overflow = 'hidden'
-  newElem.class = 'uiblock'
-  newElem.style.flex = '1 0 auto'
-  uiWrapper.appendChild( newElem )   
-
-  let head = document.createElement( 'div' )
-  str ? head.innerHTML = str :  head.innerHTML = ' ' 
-  head.style.backgroundColor = "#27242d"
-  head.style.color = '#5f5d4d' 
-  head.style.paddingLeft = '15px'  
-  head.style.marginBottom = '15px'    
-  newElem.appendChild( head )
-  
-  addElems( newElem )      
 }
-
-
-const createSelector = ( props, parent ) => {
-  let {
-      type = 'range'
-    , min = -50
-    , max = 50
-    , value = 0
-    , id = 'scaleFront'
-    , zIndex = '100'
-    , position = 'relative'
-    , display = 'block'
-    , margin = '0px'
-    , width = '70%'  
-    , onkeydown = 'return false'
-    , oninput = () => {}  	  
-  } = props
-  
-  let inpName = document.createElement( 'p' )
-  inpName.style.userSelect = 'none'
-  inpName.innerHTML = id
-  inpName.style.margin = '0px'
-  inpName.style.marginLeft = '15px'
-  parent.appendChild( inpName )   
-
-  let newElem = document.createElement( 'input' )
-  newElem.type = type
-  newElem.id = id
-  newElem.style.zIndex = zIndex
-  newElem.style.position = position
-  newElem.style.display = display
-  newElem.style.width = width
-  newElem.min = min
-  newElem.max = max  
-  newElem.value = value
-  newElem.onkeydown = onkeydown
-  newElem.oninput = oninput	 
-  parent.appendChild( newElem ) 
-  return newElem
-}
-
-
-const createButton = ( props, parent ) => {
-  let {
-        id = 'flip'
-      , zIndex = '100'
-      , position = 'relative'
-      , display = 'block'
-      , margin= '10px'
-      , width = '100px'
-      , value = null
-      , onkeydown = null
-      , oninput = null
-      , onclick = () => {}  
-  } = props
-
-  let newElem = document.createElement( 'button' )
-  newElem.id = id
-  newElem.innerHTML = id
-  newElem.style.zIndex = zIndex
-  newElem.style.position = position
-  newElem.style.display = display
-  newElem.style.margin= margin
-  newElem.style.width = width
-  newElem.value = value
-  newElem.onkeydown = onkeydown
-  newElem.oninput = oninput
-  newElem.onclick = onclick
-  parent.appendChild( newElem ) 
-  return newElem
-}
-
-
-const createLink = ( props, parent ) => {
-   let newElem = document.createElement( 'p' )
-   newElem.innerHTML = '<a href="' + props.path + '"> ' + props.id + '</a>'
-   parent.appendChild( newElem ) 
-   return newElem    
-}
-
-
-/*****************************************************************************/
-
-const calckPrice = () => {
-  if ( ! d.fW  ) return 
-  if ( ! d.fH  ) return 
-  if ( ! d.fD  ) return
-  
-  let w =  Math.floor( (+d.fW.realValue) * 45 * (+d.fH.realValue)/270 * ((+d.fD.realValue) * 0.0018 + 1.2) * text.priceFactor )
-  
-  let t = w
-  t = formatNumber( t )
-
-  textSVG.price.remove()
-  textSVG.price = mySVG.text( ( add ) => { add.tspan('Price: ' + t + ' *' ) } )
-  textSVG.price.font( fontStyleShtamp )
-  textSVG.price.move( 300, 1905 )
-}
-
-const formatNumber = ( v ) => {
-  let n = v + ''
-  let s = ''
-  for( let i = n.length - 1; i > -1; i -- ) {  
-    ( i + 1 )%3 == 0 ? s = s + ' ' : s
-    i < 4 ? s += '0' : s = s + n[ n.length - i - 1 ]  
-  }
-  return s 
-}
-
-const downloadDrawing = () => {
-  var svg = document.querySelector( "svg" )
-
-  var svgData = new XMLSerializer().serializeToString( svg )        
-  var can = document.createElement("canvas")
-  can.width = svgW
-  can.height = svgH
-  var ctx = can.getContext("2d")
-  ctx.fillStyle = "#0f0e11";
-  ctx.fillRect( 0, 0, svgW, svgH )
-  
-  var img = document.createElement( "img" )
-  img.setAttribute( "src", "data:image/svg+xml;base64," + btoa(svgData))
-  img.onload = () => {
-      ctx.drawImage( img, 0, 0, svgW, svgH )
-      var a = document.createElement('a')
-      document.body.appendChild(a)
-      a.href = can.toDataURL('image/png')
-      a.download = 'drawing.jpg'
-      a.click();
-    };
-}
-
