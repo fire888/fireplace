@@ -76,7 +76,7 @@ fL = {
 flame = {
   model: null, props: null
 },
-proto_Props = {
+objProps_Proto = {
   flip:         1,
   scaleX:       1,
   scaleXsaved:  1, 
@@ -164,7 +164,7 @@ const checkDate = () => {
 
 const drawFireplace = () => {
   frontView.model = mySVG.group()
-  frontView.props = Object.assign( {}, proto_Props )  
+  frontView.props = Object.assign( {}, objProps_Proto )  
   transformObj( frontView, 'pointScale', 'centerBottom' )
   transformObj( frontView, 'pX', AXIS_X )
   transformObj( frontView, 'pY', FLOOR_Y )
@@ -172,44 +172,44 @@ const drawFireplace = () => {
   let frontDef = SVG.select( '#front' )
   
   f.frontR.model = frontView.model.use( frontDef.members[ 0 ] )
-  f.frontR.props = Object.assign( {}, proto_Props )
+  f.frontR.props = Object.assign( {}, objProps_Proto )
 
   f.frontL.model = frontView.model.use( frontDef.members[ 0 ] )
-  f.frontL.props = Object.assign( {}, proto_Props )  
+  f.frontL.props = Object.assign( {}, objProps_Proto )  
   transformObj( f.frontL, 'flip', -1 )  
 
   let legDef = SVG.select( '#leg' )
   
   f.legR.model = frontView.model.use( legDef.members[ 0 ] ) 
-  f.legR.props = Object.assign( {}, proto_Props )      
+  f.legR.props = Object.assign( {}, objProps_Proto )      
   transformObj( f.legR, 'pX', f.frontR.model.bbox().w )
 
   f.legL.model = frontView.model.use( legDef.members[ 0 ] ) 
-  f.legL.props = Object.assign( {}, proto_Props )
+  f.legL.props = Object.assign( {}, objProps_Proto )
   transformObj( f.legL, 'flip', -1 )  
   transformObj( f.legL, 'pX', f.frontL.model.bbox().w )   
 
 
   leftView.model = mySVG.group()
-  leftView.props = Object.assign( {}, proto_Props )  
+  leftView.props = Object.assign( {}, objProps_Proto )  
   transformObj( leftView, 'pointScale', 'centerBottom' )
   transformObj( leftView, 'pX', AXIS_X + 1400)
   transformObj( leftView, 'pY', FLOOR_Y )
   
   fL.legR.model = leftView.model.use( legDef.members[ 0 ] ) 
-  fL.legR.props = Object.assign( {}, proto_Props )      
+  fL.legR.props = Object.assign( {}, objProps_Proto )      
   transformObj( fL.legR, 'pX', 0 )
   
   let panelDef = SVG.select( '#panel' )
   fL.panel.model = leftView.model.use( panelDef.members[ 0 ] ) 
-  fL.panel.props = Object.assign( {}, proto_Props )      
+  fL.panel.props = Object.assign( {}, objProps_Proto )      
   transformObj( fL.panel, 'pointScale', 'panelRightCenter' )
   transformObj( fL.panel, 'outlineX', -fL.panel.model.bbox().w )    
 }
 
 const drawFlame = () => {
   flame.model = mySVG.rect(700, 550)
-  flame.props = Object.assign( {}, proto_Props ) 
+  flame.props = Object.assign( {}, objProps_Proto ) 
   flame.model.attr( styleShtamp )
   flame.model.addClass( 'cls-1')
   transformObj( flame, 'pointScale', 'flameCenterBottom' )  
